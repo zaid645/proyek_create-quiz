@@ -1,7 +1,10 @@
 @import "tailwindcss";
 
 body {
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  /* Font fallback untuk skrip non-Latin (Arab, Mandarin). Plus Jakarta Sans
+     hanya punya glyph Latin, jadi tanpa fallback ini teks Arab akan dirender
+     dengan font sistem yang bisa saja tidak menampilkan harakat dengan benar. */
+  font-family: 'Plus Jakarta Sans', 'Noto Naskh Arabic', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
 }
 .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

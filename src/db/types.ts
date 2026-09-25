@@ -51,6 +51,8 @@ export interface Proyek {
   nama_proyek: string;
   deskripsi: string | null;
   custom_prompt: string | null;
+  bahasa: string;
+  gaya_teks: string;
   default_poin_pg: number;
   default_poin_uraian: number;
   default_poin_penalaran: number;

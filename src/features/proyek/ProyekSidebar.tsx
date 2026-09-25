@@ -7,6 +7,7 @@ import type { Proyek } from '../../db/types';
 import { buatProyek, hapusProyek } from '../../db/repositories/proyekRepo';
 import { Modal, ConfirmModal } from '../../shared/ui/Modal';
 import { useToast } from '../../shared/ui/Toast';
+import { BAHASA_DEFAULT, DAFTAR_BAHASA, DAFTAR_GAYA_TEKS, GAYA_TEKS_DEFAULT, cariBahasa } from '../../services/bahasa';
 
 export function ProyekSidebar({
   daftar,
@@ -26,6 +27,8 @@ export function ProyekSidebar({
   const toast = useToast();
   const [bukaBaru, setBukaBaru] = useState(false);
   const [nama, setNama] = useState('');
+  const [bahasa, setBahasa] = useState(BAHASA_DEFAULT);
+  const [gayaTeks, setGayaTeks] = useState(GAYA_TEKS_DEFAULT);
   const [hapusTarget, setHapusTarget] = useState<Proyek | null>(null);
   const [sibuk, setSibuk] = useState(false);
 
@@ -38,8 +41,10 @@ export function ProyekSidebar({
     }
     setSibuk(true);
     try {
-      const p = await buatProyek(nama.trim());
+      const p = await buatProyek(nama.trim(), '', '', bahasa, gayaTeks);
       setNama('');
+      setBahasa(BAHASA_DEFAULT);
+      setGayaTeks(GAYA_TEKS_DEFAULT);
       setBukaBaru(false);
       toast('Proyek baru dibuat!', 'success');
       onPilih(p.id);
@@ -115,8 +120,12 @@ export function ProyekSidebar({
                 onClick={() => pilih(p.id)}
               >
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-slate-900 truncate">{p.nama_proyek}</p>
-                  <p className="text-[10px] text-slate-400 truncate">{p.deskripsi || 'Tanpa deskripsi'}</p>
+                  <p className="text-xs font-bold text-slate-900 truncate" dir="auto">{p.nama_proyek}</p>
+                  <p className="text-[10px] text-slate-400 truncate">
+                    {p.bahasa && p.bahasa !== BAHASA_DEFAULT
+                      ? `${cariBahasa(p.bahasa).label} · ${p.deskripsi || 'Tanpa deskripsi'}`
+                      : p.deskripsi || 'Tanpa deskripsi'}
+                  </p>
                 </div>
                 {p.id === aktifId && <span className="text-[10px] font-bold text-indigo-600 shrink-0">aktif</span>}
                 <button
@@ -150,6 +159,37 @@ export function ProyekSidebar({
             placeholder="cth: UAS Ganjil - IPA Kelas 6"
             className="w-full px-3.5 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
           />
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Bahasa Soal</label>
+              <select
+                value={bahasa}
+                onChange={(e) => setBahasa(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+              >
+                {DAFTAR_BAHASA.map((b) => (
+                  <option key={b.nilai} value={b.nilai}>{b.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Gaya Teks</label>
+              <select
+                value={gayaTeks}
+                onChange={(e) => setGayaTeks(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+              >
+                {DAFTAR_GAYA_TEKS.map((g) => (
+                  <option key={g.nilai} value={g.nilai}>{g.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <p className="mt-2 text-[11px] text-slate-400 leading-snug">
+            {gayaTeks === 'struktur'
+              ? 'AI boleh membuat soal beberapa baris (setiap syarat/data pada baris sendiri).'
+              : 'AI membuat soal satu baris, jawaban tetap singkat.'}
+          </p>
           <div className="mt-4 flex justify-end space-x-2">
             <button onClick={() => setBukaBaru(false)} className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700">Batal</button>
             <button onClick={simpanBaru} disabled={sibuk} className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50">

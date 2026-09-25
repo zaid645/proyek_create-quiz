@@ -95,7 +95,7 @@ export function SoalEditorModal(props: {
         {tipe !== 'proyek' && (
           <div>
             <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Pertanyaan / Soal</label>
-            <textarea value={soal} onChange={(e) => setSoal(e.target.value)} className="w-full h-24 px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm" placeholder="Ketik pertanyaan..." />
+            <textarea value={soal} dir="auto" onChange={(e) => setSoal(e.target.value)} className="w-full h-24 px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm" placeholder="Ketik pertanyaan... Enter untuk baris baru." />
           </div>
         )}
 
@@ -106,7 +106,7 @@ export function SoalEditorModal(props: {
               <div key={o.id} className="flex items-center space-x-2">
                 <input type="radio" name="kunci" checked={kunci === o.id} onChange={() => setKunci(o.id)} className="w-4 h-4" />
                 <span className="text-xs font-bold w-4">{o.id}</span>
-                <input value={o.teks} onChange={(e) => setOpsi((prev) => prev.map((p, j) => (j === i ? { ...p, teks: e.target.value } : p)))} className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-200" placeholder={`Pilihan ${o.id}...`} />
+                <textarea value={o.teks} rows={2} onChange={(e) => setOpsi((prev) => prev.map((p, j) => (j === i ? { ...p, teks: e.target.value } : p)))} dir="auto" className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-200" placeholder={`Pilihan ${o.id}...`} />
               </div>
             ))}
             <div className="flex gap-3 pt-1">
@@ -135,7 +135,7 @@ export function SoalEditorModal(props: {
           <div className="space-y-3">
             <div>
               <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Judul Proyek</label>
-              <input value={judul} onChange={(e) => setJudul(e.target.value)} className="w-full px-3.5 py-2 rounded-lg border border-slate-200 text-sm" />
+              <input value={judul} dir="auto" onChange={(e) => setJudul(e.target.value)} className="w-full px-3.5 py-2 rounded-lg border border-slate-200 text-sm" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Deskripsi Proyek</label>
@@ -149,7 +149,7 @@ export function SoalEditorModal(props: {
               {langkah.map((s, i) => (
                 <div key={i} className="flex items-center space-x-2 mb-2">
                   <span className="text-xs font-bold text-slate-400 w-5">{i + 1}.</span>
-                  <input value={s} onChange={(e) => setLangkah((p) => p.map((v, j) => (j === i ? e.target.value : v)))} className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-200" />
+                  <textarea value={s} rows={2} onChange={(e) => setLangkah((p) => p.map((v, j) => (j === i ? e.target.value : v)))} dir="auto" className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-200" />
                   <button onClick={() => setLangkah((p) => p.filter((_, j) => j !== i))} className="text-slate-400 hover:text-rose-600 text-xs">Hps</button>
                 </div>
               ))}

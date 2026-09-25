@@ -1,8 +1,46 @@
 // src/services/exportImport.ts — impor/ekspor JSON (kompatibel lama).
 import type { BankSoalJSON, DataSoal, Proyek, SoalRecord, TipeSoal } from '../db/types';
 
+// Slug untuk nama file. Huruf non-Latin (Arab, Ibrani, dst) TIDAK punya padanan
+// a-z, jadi regex lama akan mengubah seluruh nama proyek Arab menjadi "_" yang
+// tidak berguna. Fallback: transliterate sederhana ke huruf Latin, lalu pakai
+// "ujian" kalau memang tidak ada karakter yang bisa dipakai sama sekali.
+const PETA_TRANSLITERASI: Record<string, string> = {
+  ا: 'a', أ: 'a', إ: 'i', آ: 'a', ب: 'b', ت: 't', ث: 'ts', ج: 'j', ح: 'h', خ: 'kh',
+  د: 'd', ذ: 'dz', ر: 'r', ز: 'z', س: 's', ش: 'sy', ص: 'sh', ض: 'dh', ط: 'th', ظ: 'zh',
+  ع: 'a', غ: 'gh', ف: 'f', ق: 'q', ك: 'k', ل: 'l', م: 'm', ن: 'n', ه: 'h', و: 'w',
+  ي: 'y', ى: 'a', ة: 'h', ء: '', ؤ: 'u', ئ: 'i',
+};
+
+function transliterasi(teks: string): string {
+  return teks
+    .split('')
+    .map((c) => (c in PETA_TRANSLITERASI ? PETA_TRANSLITERASI[c] : c))
+    .join('');
+}
+
 export function slug(teks: string): string {
-  return (teks || 'ujian').toLowerCase().replace(/[^a-z0-9]+/g, '_');
+  const dasar = (teks || '').trim();
+  if (!dasar) return 'ujian';
+  const bersih = String(dasar)
+    // Buang harakat (fathah/dammah/kasrah) dan tatweel lebih dulu: kalau tidak,
+    // "مُحَمَّد" jadi "m_h_m_d" yang tidak pernah diketik pengguna.
+    .replace(/[ً-ْـ]/g, '')
+    // Angka Arab-Indic (٠١٢٣) dan Extended (۰۱۲۳) dipetakan ke digit ASCII dulu.
+    // Tanpa ini seluruh angka ikut hilang, karena regex slug hanya menerima a-z0-9
+    // dan nama file jadi kehilangan bagian penting seperti tahun atau nomor soal.
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0));
+  // Transliterasi SELALU dijalankan lebih dulu, bukan sebagai fallback. Huruf Arab
+  // tidak punya padanan a-z, jadi kalau slug biasa yang dipakai lebih dulu, teks
+  // "اختبار ١٢٣" akan menjadi "123" — huruf aslinya hilang. Dengan transliterasi
+  // lebih dulu, huruf Latin yang sudah ada ikut dipertahankan sehingga teks
+  // campuran ("Ujian Arabic ٢") tetap utuh.
+  const hasil = transliterasi(bersih)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  return hasil || 'ujian';
 }
 
 export function unduhBlob(blob: Blob, namaFile: string): void {

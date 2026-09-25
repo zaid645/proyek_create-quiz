@@ -68,6 +68,8 @@ async function initDbSekali(): Promise<SesiDB> {
       target_uraian: 'integer NOT NULL DEFAULT 0',
       target_penalaran: 'integer NOT NULL DEFAULT 0',
       target_proyek: 'integer NOT NULL DEFAULT 0',
+      bahasa: "text NOT NULL DEFAULT 'id'",
+      gaya_teks: "text NOT NULL DEFAULT 'ringkas'",
     });
     const sesi: SesiDB = { sqlite3, db, vfs };
     sesiAktif = sesi;

@@ -78,6 +78,8 @@ export function useGenerator({ proyek, daftarFile, soalSemua, onSoalBerubah }: O
         jumlahOpsiPG: opsi,
         soalEksisting: eksisting,
         materiTeks: materi,
+        bahasa: proyek.bahasa,
+        gayaTeks: proyek.gaya_teks,
       };
     },
     [proyek, daftarFile, materiTambahan],

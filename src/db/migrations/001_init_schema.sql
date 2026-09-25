@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS `proyek` (
   `nama_proyek` text NOT NULL,
   `deskripsi` text,
   `custom_prompt` text,
+  `bahasa` text NOT NULL DEFAULT 'id',
+  `gaya_teks` text NOT NULL DEFAULT 'ringkas',
   `default_poin_pg` integer NOT NULL DEFAULT 2,
   `default_poin_uraian` integer NOT NULL DEFAULT 5,
   `default_poin_penalaran` integer NOT NULL DEFAULT 15,

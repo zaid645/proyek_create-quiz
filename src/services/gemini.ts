@@ -6,6 +6,7 @@ import InstructionPilihan from '../data/instructions/InstructionPilihan.json';
 import InstructionUraian from '../data/instructions/InstructionUraian.json';
 import InstructionNalar from '../data/instructions/InstructionNalar.json';
 import InstructionProject from '../data/instructions/InstructionProject.json';
+import { GAYA_TEKS_DEFAULT, cariBahasa, cariGayaTeks } from './bahasa';
 
 const SYSTEM_PROMPT =
   'Anda adalah program generator soal otomatis terstruktur dalam format JSON mentah. ' +
@@ -22,6 +23,27 @@ export interface KonteksGenerate {
   jumlahOpsiPG: number;
   soalEksisting: Array<Record<string, unknown>>;
   materiTeks: string;
+  /** Kode bahasa proyek (lihat services/bahasa.ts). Default: Bahasa Indonesia. */
+  bahasa?: string;
+  /** Kode gaya teks proyek. Default: 'ringkas'. */
+  gayaTeks?: string;
+}
+
+// Salin InstructionMain lalu ganti placeholder {BAHASA} dengan nama bahasa nyata.
+// Deep copy dipakai supaya JSON module yang di-import tidak ikut termodifikasi
+// (kalau termodifikasi, prompt berikutnya akan memakai bahasa proyek sebelumnya).
+function instruksiMainDenganBahasa(namaBahasa: string, gayaTeks: string): Record<string, unknown> {
+  const salin = JSON.parse(JSON.stringify(InstructionMain)) as Record<string, unknown>;
+  if (typeof salin['bahasa'] === 'string') {
+    salin['bahasa'] = (salin['bahasa'] as string).replaceAll('{BAHASA}', namaBahasa);
+  }
+  // Aturan gaya teks disisipkan ke dalam daftar instruksi utama supaya punya
+  // bobot yang sama dengan aturan lain, bukan sekadar catatan di akhir.
+  const aturanGaya = cariGayaTeks(gayaTeks).aturanPrompt;
+  const utama = salin['instruksi_utama'];
+  if (Array.isArray(utama)) utama.splice(6, 0, aturanGaya);
+  else salin['instruksi_utama'] = [aturanGaya];
+  return salin;
 }
 
 export function rakitPrompt(ctx: KonteksGenerate): Record<string, unknown> {
@@ -45,7 +67,10 @@ export function rakitPrompt(ctx: KonteksGenerate): Record<string, unknown> {
   }
 
   return {
-    InstructionMain,
+    InstructionMain: instruksiMainDenganBahasa(
+      cariBahasa(ctx.bahasa).namaPrompt,
+      ctx.gayaTeks ?? GAYA_TEKS_DEFAULT,
+    ),
     JudulSoalProyek: ctx.judul || 'Ujian Baru',
     DeskripsiSoal: ctx.deskripsi,
     CustomPrompt: ctx.customPrompt,
@@ -93,6 +118,15 @@ function bersihkanMarkdown(teks: string): string {
   return bersih;
 }
 
+// Model kadang memancarkan urutan backslash-n LITERAL di dalam string JSON
+// alih-alih escape newline yang sesungguhnya. Setelah JSON.parse, itu berubah
+// jadi karakter "\" + "n" yang tidak terlihat sebagai baris baru di UI. Ubah
+// jadi newline asli supaya tampil benar. Line ending juga dinormalisasi ke \n
+// supaya tidak ada carriage return yang bikin baris kosong ganda di Windows.
+function normalisasiBaris(v: string): string {
+  return v.replace(/\r\n?/g, '\n').replace(/\\n/g, '\n');
+}
+
 export function validasiHasil(tipe: TipeSoal, mentah: unknown): DataSoal {
   const d = mentah as Record<string, unknown>;
   if (!d || typeof d !== 'object') throw new Error('Skema tidak sesuai: bukan objek.');
@@ -104,23 +138,27 @@ export function validasiHasil(tipe: TipeSoal, mentah: unknown): DataSoal {
     if (typeof d['soal'] !== 'string' || !Array.isArray(opsi) || typeof d['id_opsi_benar'] !== 'string') {
       throw new Error('Skema Pilihan Ganda tidak sesuai.');
     }
-    return { soal: d['soal'] as string, opsi: opsi.map((o) => ({ id: String(o.id), teks: String(o.teks) })), id_opsi_benar: d['id_opsi_benar'] as string };
+    return {
+      soal: normalisasiBaris(d['soal'] as string),
+      opsi: opsi.map((o) => ({ id: String(o.id), teks: normalisasiBaris(String(o.teks)) })),
+      id_opsi_benar: d['id_opsi_benar'] as string,
+    };
   }
   if (tipe === 'uraian') {
     if (typeof d['soal'] !== 'string' || typeof d['jawaban_singkat'] !== 'string') throw new Error('Skema Uraian tidak sesuai.');
-    return { soal: d['soal'], jawaban_singkat: d['jawaban_singkat'] };
+    return { soal: normalisasiBaris(d['soal']), jawaban_singkat: normalisasiBaris(d['jawaban_singkat']) };
   }
   if (tipe === 'penalaran') {
     if (typeof d['soal'] !== 'string' || typeof d['paragraf_jawaban'] !== 'string') throw new Error('Skema Penalaran tidak sesuai.');
-    return { soal: d['soal'], paragraf_jawaban: d['paragraf_jawaban'] };
+    return { soal: normalisasiBaris(d['soal']), paragraf_jawaban: normalisasiBaris(d['paragraf_jawaban']) };
   }
   if (typeof d['judul'] !== 'string' || typeof d['deskripsi_proyek'] !== 'string' || !Array.isArray(d['langkah_langkah'])) {
     throw new Error('Skema Proyek tidak sesuai.');
   }
   return {
-    judul: d['judul'] as string,
-    deskripsi_proyek: d['deskripsi_proyek'] as string,
-    langkah_langkah: (d['langkah_langkah'] as unknown[]).map(String),
+    judul: normalisasiBaris(d['judul'] as string),
+    deskripsi_proyek: normalisasiBaris(d['deskripsi_proyek'] as string),
+    langkah_langkah: (d['langkah_langkah'] as unknown[]).map((x) => normalisasiBaris(String(x))),
   };
 }
 

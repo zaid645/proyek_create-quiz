@@ -1,6 +1,7 @@
 // src/features/soal/QuestionCard.tsx — kartu 1 soal + kontrol poin/visibility/edit/hapus.
 import type { SoalPenalaran, SoalPilihanGanda, SoalProyek, SoalRecord, SoalUraian, TipeSoal } from '../../db/types';
 import { hapusSoal, ubahPoin, ubahVisibilitas } from '../../db/repositories/soalRepo';
+import { PROPS_TEKS, TEKS_MULTIBARIS } from '../../services/teks';
 
 export function QuestionCard({
   record,
@@ -34,7 +35,7 @@ export function QuestionCard({
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 text-sm font-bold text-slate-900 leading-relaxed">
           <span className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold mr-2">{nomor}</span>
-          {judul}
+          <span {...PROPS_TEKS}>{judul}</span>
         </div>
         <div className="flex items-center space-x-1 shrink-0">
           <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 mr-1">
@@ -71,7 +72,7 @@ function IsiKartu({ tipe, data }: { tipe: TipeSoal; data: Record<string, unknown
           return (
             <div key={o.id} className={`p-2.5 rounded-lg border flex items-start gap-2.5 ${benar ? 'border-emerald-500 bg-emerald-50/20 font-semibold' : 'border-slate-100 bg-slate-50/30'}`}>
               <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-white border text-[10px] shrink-0">{o.id}</span>
-              <span className="leading-normal">{o.teks}</span>
+              <span className={`leading-normal ${TEKS_MULTIBARIS}`} dir="auto">{o.teks}</span>
             </div>
           );
         })}
@@ -83,7 +84,7 @@ function IsiKartu({ tipe, data }: { tipe: TipeSoal; data: Record<string, unknown
     return (
       <div className="p-3 bg-indigo-50/20 border border-indigo-100/30 rounded-xl">
         <span className="block font-bold text-[10px] text-indigo-700 uppercase mb-1">Kunci Jawaban Singkat:</span>
-        <p className="text-slate-600 font-medium">{d.jawaban_singkat}</p>
+        <p className={`text-slate-600 font-medium ${TEKS_MULTIBARIS}`} dir="auto">{d.jawaban_singkat}</p>
       </div>
     );
   }
@@ -92,21 +93,21 @@ function IsiKartu({ tipe, data }: { tipe: TipeSoal; data: Record<string, unknown
     return (
       <div className="p-3 bg-indigo-50/20 border border-indigo-100/30 rounded-xl">
         <span className="block font-bold text-[10px] text-indigo-700 uppercase mb-1">Analisis Kunci Jawaban:</span>
-        <p className="text-slate-600 font-medium">{d.paragraf_jawaban}</p>
+        <p className={`text-slate-600 font-medium ${TEKS_MULTIBARIS}`} dir="auto">{d.paragraf_jawaban}</p>
       </div>
     );
   }
   const d = data as unknown as SoalProyek;
   return (
     <div>
-      <p className="text-slate-500 italic mb-2">{d.deskripsi_proyek}</p>
+      <p className={`text-slate-500 italic mb-2 ${TEKS_MULTIBARIS}`} dir="auto">{d.deskripsi_proyek}</p>
       <div className="p-4 bg-slate-50/50 border border-slate-100 rounded-xl">
         <span className="block font-bold text-[10px] text-slate-700 uppercase mb-2">Panduan Pelaksanaan:</span>
         <ul className="space-y-1.5">
           {(d.langkah_langkah ?? []).map((s, i) => (
             <li key={i} className="flex items-start gap-2">
               <span className="w-4 h-4 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-[9px] font-bold inline-flex items-center justify-center mt-0.5 shrink-0">{i + 1}</span>
-              <span className="text-slate-600">{s}</span>
+              <span className={`text-slate-600 ${TEKS_MULTIBARIS}`} dir="auto">{s}</span>
             </li>
           ))}
         </ul>

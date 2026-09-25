@@ -3,8 +3,16 @@ import type { SoalRecord, TipeSoal } from '../db/types';
 import type { BankSoalAktif } from './exportImport';
 import { slug, unduhBlob } from './exportImport';
 
+// Escape HTML lalu ubah baris baru jadi <br />.
+// Urutan penting: "&" harus di-escape lebih dulu, kalau tidak "&lt;" ikut berubah.
+// Tags <br /> sengaja ditambahkan SETELAH escaping, jadi tidak ikut ter-escape.
 function esc(v: unknown): string {
-  return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\r\n?/g, '\n')
+    .replace(/\n/g, '<br />');
 }
 
 export function eksporDoc(bank: BankSoalAktif): void {
@@ -20,12 +28,12 @@ export function eksporDoc(bank: BankSoalAktif): void {
   let html =
     `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>` +
     `<head><title>${esc(judul)}</title><style>` +
-    `body { font-family: 'Times New Roman', Times, serif; line-height: 1.5; color: #000; }` +
+    `body { font-family: 'Times New Roman', 'Noto Naskh Arabic', 'Arabic Typesetting', Times, serif; line-height: 1.5; color: #000; }` +
     `h1 { text-align: center; font-size: 16pt; margin-bottom: 20px; font-weight: bold; text-transform: uppercase; }` +
     `h2 { font-size: 14pt; margin-top: 30px; margin-bottom: 15px; font-weight: bold; text-transform: uppercase; }` +
     `ol { padding-left: 24px; margin-top: 5px; margin-bottom: 15px; }` +
     `li { font-size: 12pt; margin-bottom: 10px; page-break-inside: avoid; }` +
-    `</style></head><body>` +
+    `</style></head><body dir="auto">` +
     `<h1>${esc(judul)}</h1>`;
   html += `<h1 style="font-size: 14pt; margin-top: -10px;">LEMBAR SOAL</h1>`;
 

@@ -14,6 +14,8 @@ export const proyek = sqliteTable('proyek', {
   namaProyek: text('nama_proyek').notNull(),
   deskripsi: text('deskripsi'),
   customPrompt: text('custom_prompt'),
+  bahasa: text('bahasa').notNull().default('id'),
+  gayaTeks: text('gaya_teks').notNull().default('ringkas'),
   defaultPoinPg: integer('default_poin_pg').notNull().default(2),
   defaultPoinUraian: integer('default_poin_uraian').notNull().default(5),
   defaultPoinPenalaran: integer('default_poin_penalaran').notNull().default(15),
