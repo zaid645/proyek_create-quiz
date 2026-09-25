@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generator Pertanyaan Otomatis - Low & Free AI Integration</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+          <i class="fa-solid fa-brain text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-950 tracking-tight">AI Question Generator</h1>
+          <p class="text-xs text-slate-500 font-medium">Automatic Assessment Creator</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <button onclick="toggleConfigModal()" class="flex items-center space-x-2 text-slate-600 hover:text-indigo-600 bg-slate-100 hover:bg-indigo-50 px-3 py-2 rounded-lg text-sm font-semibold transition">
+          <i class="fa-solid fa-gear"></i>
+          <span class="hidden sm:inline">Konfigurasi AI</span>
+        </button>
+        <span class="h-6 w-px bg-slate-200"></span>
+        <a href="https://aistudio.google.com/" target="_blank" class="text-xs text-indigo-600 hover:underline font-medium hidden md:inline">Dapatkan API Key Gratis →</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- Left Panel: Configurations & Input Material -->
+    <div class="lg:col-span-4 space-y-6">
+      
+      <!-- Metadata Soal -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-file-signature text-indigo-600"></i> Informasi Ujian
+        </h2>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Judul Lembar Soal</label>
+          <input type="text" id="inputJudul" value="Ujian Akhir Semester Ganjil - IPA Kelas 6" class="w-full px-3.5 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm font-medium transition" placeholder="Masukkan judul ujian...">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Deskripsi Ujian (Konteks)</label>
+          <textarea id="inputDeskripsi" class="w-full h-16 px-3.5 py-2.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition custom-scrollbar" placeholder="Masukkan target kompetensi atau deskripsi ujian..."></textarea>
+        </div>
+      </div>
+
+      <!-- Generator Settings -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-wand-magic-sparkles text-indigo-600"></i> Buat Soal Otomatis
+        </h2>
+
+        <!-- Tipe Soal Selection -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Tipe Soal yang Ingin Dibuat</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="selectType('pilihan_ganda')" id="btn-pilihan_ganda" class="type-btn p-3 rounded-xl border text-left transition flex flex-col justify-between h-20 border-indigo-500 bg-indigo-50/40 text-indigo-950">
+              <i class="fa-solid fa-list-check text-indigo-600 text-lg"></i>
+              <span class="text-xs font-bold leading-tight">Pilihan Ganda</span>
+            </button>
+            <button onclick="selectType('uraian')" id="btn-uraian" class="type-btn p-3 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 text-left transition flex flex-col justify-between h-20 bg-white">
+              <i class="fa-solid fa-pen-nib text-slate-500 text-lg"></i>
+              <span class="text-xs font-bold leading-tight">Uraian</span>
+            </button>
+            <button onclick="selectType('penalaran')" id="btn-penalaran" class="type-btn p-3 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 text-left transition flex flex-col justify-between h-20 bg-white">
+              <i class="fa-solid fa-lightbulb text-slate-500 text-lg"></i>
+              <span class="text-xs font-bold leading-tight">Penalaran</span>
+            </button>
+            <button onclick="selectType('proyek')" id="btn-proyek" class="type-btn p-3 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 text-left transition flex flex-col justify-between h-20 bg-white">
+              <i class="fa-solid fa-laptop-code text-slate-500 text-lg"></i>
+              <span class="text-xs font-bold leading-tight">Proyek Praktis</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Default Point Values -->
+        <div class="mt-4 p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
+          <label class="block text-xs font-bold text-indigo-900 mb-2">Nilai Default Poin Soal</label>
+          <div class="grid grid-cols-4 gap-2 text-sm">
+            <div>
+              <span class="block text-[10px] text-indigo-700 uppercase tracking-wider">Pilgan</span>
+              <input type="number" id="defaultPoin_pilihan_ganda" value="2" class="w-full border border-indigo-200 rounded-lg px-2 py-1.5 text-center focus:ring-indigo-500 text-xs font-medium" onchange="updateDefaultPoin('pilihan_ganda', this.value)">
+            </div>
+            <div>
+              <span class="block text-[10px] text-indigo-700 uppercase tracking-wider">Uraian</span>
+              <input type="number" id="defaultPoin_uraian" value="5" class="w-full border border-indigo-200 rounded-lg px-2 py-1.5 text-center focus:ring-indigo-500 text-xs font-medium" onchange="updateDefaultPoin('uraian', this.value)">
+            </div>
+            <div>
+              <span class="block text-[10px] text-indigo-700 uppercase tracking-wider">Nalar</span>
+              <input type="number" id="defaultPoin_penalaran" value="15" class="w-full border border-indigo-200 rounded-lg px-2 py-1.5 text-center focus:ring-indigo-500 text-xs font-medium" onchange="updateDefaultPoin('penalaran', this.value)">
+            </div>
+            <div>
+              <span class="block text-[10px] text-indigo-700 uppercase tracking-wider">Proyek</span>
+              <input type="number" id="defaultPoin_proyek" value="25" class="w-full border border-indigo-200 rounded-lg px-2 py-1.5 text-center focus:ring-indigo-500 text-xs font-medium" onchange="updateDefaultPoin('proyek', this.value)">
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic PG Configuration -->
+        <div id="pg-config-panel" class="p-3.5 bg-slate-50 border border-slate-100 rounded-xl space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700">Opsi Pilihan Ganda:</span>
+            <div class="flex items-center space-x-1">
+              <button onclick="adjustOptionCount(-1)" class="w-7 h-7 bg-white hover:bg-slate-100 border border-slate-200 rounded-md text-xs font-bold transition flex items-center justify-center">-</button>
+              <span id="opt-count-display" class="px-2 text-sm font-bold text-slate-800">4</span>
+              <button onclick="adjustOptionCount(1)" class="w-7 h-7 bg-white hover:bg-slate-100 border border-slate-200 rounded-md text-xs font-bold transition flex items-center justify-center">+</button>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-500 leading-normal">Opsi akan dibuat berurutan secara otomatis berdasarkan standar ID (A, B, C, D, atau E).</p>
+        </div>
+
+        <!-- Material File Upload -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">File Rujukan Materi (.txt)</label>
+            <button onclick="clearMaterial()" id="btn-clear-material" class="text-[11px] text-rose-600 hover:underline font-semibold hidden">Hapus File</button>
+          </div>
+          <div class="relative">
+            <input type="file" id="materialFile" accept=".txt" onchange="handleMaterialUpload(event)" class="hidden">
+            <label for="materialFile" id="upload-box" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-200 hover:border-indigo-400 bg-slate-50/50 hover:bg-indigo-50/10 rounded-xl cursor-pointer transition p-4 text-center">
+              <i class="fa-solid fa-cloud-arrow-up text-slate-400 text-2xl mb-2" id="material-icon"></i>
+              <p class="text-xs font-semibold text-slate-700" id="material-title">Pilih File Teks Rujukan</p>
+              <p class="text-[10px] text-slate-400 mt-1" id="material-status">Format file .txt (Opsional)</p>
+            </label>
+          </div>
+          <div id="material-preview-box" class="hidden">
+            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Intisari / Teks Terbaca:</label>
+            <textarea id="materialText" class="w-full h-24 p-2.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white" placeholder="Isi materi akan tampil di sini atau ketik manual..."></textarea>
+          </div>
+          <div class="pt-4 border-t border-slate-100">
+            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Instruksi Khusus (Custom Prompt)</label>
+            <textarea id="inputCustomPrompt" class="w-full h-16 p-2.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white custom-scrollbar" placeholder="Tambahkan instruksi spesifik untuk AI di sini (opsional)..."></textarea>
+          </div>
+        </div>
+
+        <!-- Mode Debug & Generasi -->
+        <div class="pt-2 border-t border-slate-100 space-y-3">
+          <div class="hidden flex items-center justify-between bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+            <div class="flex flex-col">
+              <span class="text-xs font-bold text-slate-800">Mode Debug / Uji Coba</span>
+              <span class="text-[10px] text-slate-400">Unduh JSON instruksi tanpa panggil API</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="debugMode" class="sr-only peer">
+              <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+            </label>
+          </div>
+
+          <button onclick="requestGenerateQuestion()" id="btn-generate" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-100 hover:shadow-indigo-200 transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>Hasilkan Soal Sekarang</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-file-export text-indigo-600"></i> Kelola Lembaran Soal
+        </h2>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="triggerImport()" class="flex items-center justify-center gap-2 border border-slate-200 hover:bg-slate-50 text-slate-700 py-2.5 px-3 rounded-lg text-xs font-bold transition">
+            <i class="fa-solid fa-file-import text-indigo-600"></i> Impor JSON
+          </button>
+          <input type="file" id="importFile" accept=".json" onchange="handleImport(event)" class="hidden">
+          
+          <button onclick="exportToJSON()" class="flex items-center justify-center gap-2 border border-slate-200 hover:bg-slate-50 text-slate-700 py-2.5 px-3 rounded-lg text-xs font-bold transition">
+            <i class="fa-solid fa-file-code text-indigo-600"></i> Ekspor JSON
+          </button>
+        </div>
+        <button onclick="exportToDoc()" class="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 px-4 rounded-lg text-xs font-bold transition shadow-md shadow-emerald-50">
+          <i class="fa-solid fa-file-word"></i> Ekspor Dokumen (.doc)
+        </button>
+        <button onclick="clearAllQuestions()" class="w-full text-center text-xs font-bold text-rose-500 hover:text-rose-600 hover:underline pt-2">
+          Kosongkan Semua Soal saat ini
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Right Panel: Question Dashboard & List -->
+    <div class="lg:col-span-8 space-y-6">
+      
+      <!-- Statistics & Actions Bar -->
+      <div class="bg-white px-6 py-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h3 id="displayJudulSoal" class="text-lg font-bold text-slate-900 leading-tight">Ujian Akhir Semester Ganjil - IPA Kelas 6</h3>
+          <p class="text-xs text-slate-400 font-medium">Status Bank Soal: <span id="stats-total" class="font-bold text-indigo-600">0</span> Soal terkumpul</p>
+        </div>
+        
+        <!-- Filter Tabs / Category view -->
+        <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl">
+          <button onclick="switchTab('all')" id="tab-all" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold transition bg-white text-indigo-900 shadow-sm">Semua</button>
+          <button onclick="switchTab('pilihan_ganda')" id="tab-pilihan_ganda" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition">Pilihan Ganda (<span id="stats-pg">0</span>)</button>
+          <button onclick="switchTab('uraian')" id="tab-uraian" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition">Uraian (<span id="stats-ur">0</span>)</button>
+          <button onclick="switchTab('penalaran')" id="tab-penalaran" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition">Nalar (<span id="stats-nl">0</span>)</button>
+          <button onclick="switchTab('proyek')" id="tab-proyek" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition">Proyek (<span id="stats-pr">0</span>)</button>
+        </div>
+      </div>
+
+      <!-- Master Question Board Container -->
+      <div class="space-y-6" id="soal-container">
+        
+        <!-- Placeholder Empty State -->
+        <div id="empty-state" class="bg-white border border-slate-200 rounded-3xl p-12 text-center shadow-sm">
+          <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <i class="fa-solid fa-folder-open text-2xl"></i>
+          </div>
+          <h4 class="text-base font-bold text-slate-900 mb-1">Belum ada soal tersedia</h4>
+          <p class="text-xs text-slate-400 max-w-sm mx-auto mb-6">Gunakan panel di sebelah kiri untuk menggenerate soal otomatis lewat AI atau Anda dapat menambahkan soal secara manual.</p>
+          <div class="flex justify-center gap-3">
+            <button onclick="openManualCreateModal()" class="inline-flex items-center space-x-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl text-xs transition">
+              <i class="fa-solid fa-plus"></i>
+              <span>Tambah Soal Manual</span>
+            </button>
+            <button onclick="loadExampleData()" class="inline-flex items-center space-x-2 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold px-4 py-2 rounded-xl text-xs transition">
+              <i class="fa-solid fa-lightbulb"></i>
+              <span>Gunakan Data Contoh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Questions Categories Section (Populated via JS) -->
+        <div id="list-pilihan_ganda" class="space-y-4 tab-section hidden">
+          <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 px-2">
+            <i class="fa-solid fa-list-check text-indigo-600"></i> Pilihan Ganda
+          </h3>
+          <div class="space-y-4" id="target-pilihan_ganda"></div>
+        </div>
+
+        <div id="list-uraian" class="space-y-4 tab-section hidden">
+          <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 px-2">
+            <i class="fa-solid fa-pen-nib text-indigo-600"></i> Uraian
+          </h3>
+          <div class="space-y-4" id="target-uraian"></div>
+        </div>
+
+        <div id="list-penalaran" class="space-y-4 tab-section hidden">
+          <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 px-2">
+            <i class="fa-solid fa-lightbulb text-indigo-600"></i> Penalaran
+          </h3>
+          <div class="space-y-4" id="target-penalaran"></div>
+        </div>
+
+        <div id="list-proyek" class="space-y-4 tab-section hidden">
+          <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 px-2">
+            <i class="fa-solid fa-laptop-code text-indigo-600"></i> Proyek Praktis
+          </h3>
+          <div class="space-y-4" id="target-proyek"></div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Floating / Sticky Add Button (Only visible if questions exist) -->
+      <div id="sticky-add-bar" class="hidden flex items-center justify-between bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+        <span class="text-xs text-slate-500 font-medium">Butuh soal variatif lainnya? Tambahkan secara manual.</span>
+        <button onclick="openManualCreateModal()" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition shadow-md shadow-indigo-100">
+          <i class="fa-solid fa-plus"></i> Tambah Soal Manual
+        </button>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Configuration Modal -->
+  <div id="configModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden transition-opacity duration-300">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative border border-slate-100 transform transition-transform scale-95">
+      <button onclick="toggleConfigModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <h3 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+        <i class="fa-solid fa-key text-indigo-600"></i> Konfigurasi Integrasi AI Gemini
+      </h3>
+      <p class="text-xs text-slate-500 leading-normal mb-5">
+        Kami menggunakan SDK API Google Gemini. Masukkan API Key gratis dari Google AI Studio untuk mengaktifkan generator soal cerdas ini secara gratis. Key Anda disimpan aman di browser Anda lokal.
+      </p>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">API Key Gemini Anda</label>
+          <div class="relative">
+            <input type="password" id="apiKeyInput" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm font-semibold transition placeholder:font-normal" placeholder="AIzaSy...">
+            <button onclick="toggleApiKeyVisibility()" class="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 text-xs">
+              <i class="fa-solid fa-eye" id="eye-icon"></i>
+            </button>
+          </div>
+          <div class="mt-1 flex items-center justify-between">
+            <a href="https://aistudio.google.com/" target="_blank" class="text-[11px] text-indigo-600 hover:underline font-bold">Dapatkan API Key di Google AI Studio (Gratis)</a>
+            <span id="api-status-badge" class="text-[10px] bg-slate-100 text-slate-500 font-bold px-2 py-0.5 rounded">Belum Terpasang</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Model LLM Utama</label>
+          <select id="modelSelect" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm font-semibold transition bg-white">
+            <option value="gemini-2.5-flash">gemini-2.5-flash (Direkomendasikan - Default)</option>
+            <option value="gemini-3.5-flash">gemini-3.5-flash (Eksperimental)</option>
+            <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite</option>
+            <option value="gemini-3.0-flash">gemini-3.0-flash</option>
+            <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
+          </select>
+        </div>
+
+        <div class="p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+          <p class="text-xs text-amber-800 leading-normal font-medium flex gap-2">
+            <i class="fa-solid fa-circle-info text-amber-500 mt-0.5"></i>
+            <span><strong>Catatan Penting:</strong> Karena batas kuota model gratisan Gemini, generator didesain untuk merakit dan meminta 1 (satu) soal baru berkualitas per satu kali proses generate, agar pengerjaan tetap adil dan bebas kuota tersendat.</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end space-x-2">
+        <button onclick="toggleConfigModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Batal</button>
+        <button onclick="saveConfig()" class="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 transition">Simpan Pengaturan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual Create/Edit Question Modal -->
+  <div id="questionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative border border-slate-100 my-8">
+      <button onclick="closeQuestionModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <h3 id="modalQuestionTitle" class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-file-pen text-indigo-600"></i> Editor Soal
+      </h3>
+
+      <form id="questionForm" onsubmit="saveQuestion(event)" class="space-y-4">
+        <input type="hidden" id="edit-id">
+        
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Tipe Soal</label>
+          <select id="edit-tipe" onchange="adjustModalFields()" class="w-full px-3.5 py-2 rounded-lg border border-slate-200 text-sm font-semibold transition bg-white">
+            <option value="pilihan_ganda">Pilihan Ganda</option>
+            <option value="uraian">Uraian</option>
+            <option value="penalaran">Penalaran</option>
+            <option value="proyek">Proyek Praktis</option>
+          </select>
+        </div>
+
+        <!-- Soal Text (Standard for PG, Uraian, Nalar) -->
+        <div id="modal-field-soal">
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Pertanyaan / Soal</label>
+          <textarea id="edit-soal" required class="w-full h-24 px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm transition focus:ring-1 focus:ring-indigo-500" placeholder="Ketik pertanyaan di sini..."></textarea>
+        </div>
+
+        <!-- Pilihan Ganda Options -->
+        <div id="modal-field-options" class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+          <span class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Daftar Pilihan Jawaban & Tentukan Kunci Jawaban</span>
+          <div id="modal-options-container" class="space-y-2">
+            <!-- Dynamic elements go here -->
+          </div>
+        </div>
+
+        <!-- Uraian Jawaban Singkat -->
+        <div id="modal-field-uraian" class="hidden">
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Jawaban Singkat (Referensi Penilaian)</label>
+          <textarea id="edit-jawaban-singkat" class="w-full h-20 px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm transition focus:ring-1 focus:ring-indigo-500" placeholder="Masukkan acuan jawaban singkat yang tepat..."></textarea>
+        </div>
+
+        <!-- Penalaran Paragraf Jawaban -->
+        <div id="modal-field-penalaran" class="hidden">
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Paragraf Jawaban Kritis (Referensi Penilaian)</label>
+          <textarea id="edit-paragraf-jawaban" class="w-full h-24 px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm transition focus:ring-1 focus:ring-indigo-500" placeholder="Masukkan acuan jawaban analisis yang mendalam satu paragraf utuh..."></textarea>
+        </div>
+
+        <!-- Proyek Title, Desc & Steps -->
+        <div id="modal-field-proyek" class="hidden space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Judul Proyek Pembelajaran</label>
+            <input type="text" id="edit-proyek-judul" class="w-full px-3.5 py-2 rounded-lg border border-slate-200 text-sm transition" placeholder="Contoh: Pembuatan Miniatur Siklus Air...">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Deskripsi Proyek (Tujuan & Relevansi)</label>
+            <textarea id="edit-proyek-deskripsi" class="w-full h-20 px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm transition" placeholder="Tuliskan tujuan dan hasil akhir proyek yang diharapkan..."></textarea>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Langkah-langkah Kegiatan</label>
+              <button type="button" onclick="addModalProjectStep()" class="text-[11px] text-indigo-600 hover:underline font-bold">+ Tambah Langkah</button>
+            </div>
+            <div id="modal-steps-container" class="space-y-2">
+              <!-- Steps go here -->
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-4 border-t border-slate-100">
+          <button type="button" onclick="closeQuestionModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Batal</button>
+          <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100 transition">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Custom Alert Toast Box -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="bg-slate-900 text-white px-5 py-3 rounded-2xl flex items-center space-x-3 shadow-2xl border border-slate-800">
+      <div id="toast-icon" class="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center text-xs">
+        <i class="fa-solid fa-info text-[10px]"></i>
+      </div>
+      <p id="toast-message" class="text-xs font-semibold pr-4"></p>
+    </div>
+  </div>
+
+  <!-- Fullscreen Loading Overlay with Progress or Spinner -->
+  <div id="loadingOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-center z-50 hidden">
+    <div class="bg-white p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl border border-slate-100 space-y-4">
+      <div class="relative w-16 h-16 mx-auto">
+        <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+        <div class="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
+      </div>
+      <div>
+        <h4 class="text-base font-bold text-slate-900">Merakit Soal Otomatis...</h4>
+        <p class="text-xs text-slate-400 mt-1">Mengolah prompt & menghubungi Gemini AI.</p>
+      </div>
+      <div class="p-3 bg-indigo-50/50 rounded-xl">
+        <p id="loading-details" class="text-[10px] text-indigo-700 font-semibold leading-normal">
+          Menggunakan metode Exponential Backoff untuk kelancaran koneksi API. Mohon tunggu sebentar.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-6 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-400 font-medium">
+      <p>© 2026 Generator Pertanyaan Otomatis - Low and Free AI Integration. Berjalan sepenuhnya di sisi klien secara aman.</p>
+    </div>
+  </footer>
+
+  <!-- Core Javascript Implementation -->
+  <script>
+    // System Configurations Defaults
+    let mainConfig = {
+      api_key_default: "",
+      api_endpoint_prefix: "https://generativelanguage.googleapis.com/v1beta",
+      get_api_key_url: "https://aistudio.google.com/",
+      model_default: "gemini-2.5-flash",
+      daftar_model: [
+        "gemini-3.5-flash",
+        "gemini-3.1-flash-lite",
+        "gemini-3.0-flash",
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-lite"
+      ]
+    };
+
+    // System Prompts & Instructions Defaults
+    let instructionMain = null;
+    let instructionsTypes = {
+      pilihan_ganda: null,
+      uraian: null,
+      penalaran: null,
+      proyek: null
+    };
+
+    // State Variables
+    let selectedTipe = 'pilihan_ganda';
+    let pgOptionCount = 4;
+    let materialTextContent = "";
+    let activeTab = 'all';
+
+    // Tambahkan ini
+    let defaultPoints = {
+      pilihan_ganda: 2,
+      uraian: 5,
+      penalaran: 15,
+      proyek: 25
+    };
+
+    function updateDefaultPoin(tipe, val) {
+      defaultPoints[tipe] = parseInt(val) || 0;
+    }
+
+    // Primary Question Storage Struct
+    let bankSoal = {
+      pilihan_ganda: [],
+      uraian: [],
+      penalaran: [],
+      proyek: []
+    };
+
+    // Init App
+    window.addEventListener('DOMContentLoaded', async () => {
+      loadSavedConfig();
+      syncDisplayWithState();
+      
+      // Memuat file instruksi eksternal dari folder /instruction/
+      await loadInstructionFiles();
+      
+      // Auto-update judul soal keypress
+      document.getElementById('inputJudul').addEventListener('input', (e) => {
+        document.getElementById('displayJudulSoal').innerText = e.target.value || "Ujian Baru";
+      });
+    });
+
+    // Fetch Instruction Files secara dinamis
+    async function loadInstructionFiles() {
+      try {
+        // Karena ada di XAMPP, kita bisa fetch menggunakan path relatif
+        const [mainRes, pgRes, urRes, nlRes, prRes] = await Promise.all([
+          fetch('instruction/InstructionMain.json').then(r => r.json()),
+          fetch('instruction/InstructionPilihan.json').then(r => r.json()),
+          fetch('instruction/InstructionUraian.json').then(r => r.json()),
+          fetch('instruction/InstructionNalar.json').then(r => r.json()),
+          fetch('instruction/InstructionProject.json').then(r => r.json())
+        ]);
+
+        instructionMain = mainRes;
+        instructionsTypes.pilihan_ganda = pgRes;
+        instructionsTypes.uraian = urRes;
+        instructionsTypes.penalaran = nlRes;
+        instructionsTypes.proyek = prRes;
+        
+        console.log("Berhasil memuat file instruksi secara dinamis dari folder /instruction/");
+      } catch (error) {
+        console.error("Gagal memuat instruksi eksternal:", error);
+        showCustomErrorModal("Gagal memuat file instruksi dari folder 'instruction/'. Pastikan file JSON tersedia dan URL localhost Anda aktif.\n\nDetail: " + error.message);
+      }
+    }
+
+    // Save/Load API config in localstorage
+    function loadSavedConfig() {
+      const savedApiKey = localStorage.getItem('gemini_api_key');
+      const savedModel = localStorage.getItem('gemini_model_choice');
+
+      if (savedApiKey) {
+        document.getElementById('apiKeyInput').value = savedApiKey;
+        document.getElementById('api-status-badge').innerText = "Terpasang";
+        document.getElementById('api-status-badge').className = "text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded";
+      }
+      
+      const select = document.getElementById('modelSelect');
+      select.value = savedModel || mainConfig.model_default;
+    }
+
+    function saveConfig() {
+      const apiKey = document.getElementById('apiKeyInput').value.trim();
+      const model = document.getElementById('modelSelect').value;
+
+      localStorage.setItem('gemini_api_key', apiKey);
+      localStorage.setItem('gemini_model_choice', model);
+
+      if (apiKey) {
+        document.getElementById('api-status-badge').innerText = "Terpasang";
+        document.getElementById('api-status-badge').className = "text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded";
+        showToast("Konfigurasi AI berhasil disimpan!", "success");
+      } else {
+        document.getElementById('api-status-badge').innerText = "Belum Terpasang";
+        document.getElementById('api-status-badge').className = "text-[10px] bg-slate-100 text-slate-500 font-bold px-2 py-0.5 rounded";
+        showToast("Konfigurasi disimpan (tanpa API Key).", "info");
+      }
+      toggleConfigModal();
+    }
+
+    function toggleConfigModal() {
+      const modal = document.getElementById('configModal');
+      modal.classList.toggle('hidden');
+    }
+
+    function toggleApiKeyVisibility() {
+      const input = document.getElementById('apiKeyInput');
+      const icon = document.getElementById('eye-icon');
+      if (input.type === "password") {
+        input.type = "text";
+        icon.className = "fa-solid fa-eye-slash";
+      } else {
+        input.type = "password";
+        icon.className = "fa-solid fa-eye";
+      }
+    }
+
+    // Material Handling
+    function handleMaterialUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        materialTextContent = e.target.result;
+        document.getElementById('materialText').value = materialTextContent;
+        
+        // Show indicator & status
+        document.getElementById('material-title').innerText = file.name;
+        document.getElementById('material-status').innerText = "Berhasil diunggah (" + Math.round(file.size / 1024) + " KB)";
+        document.getElementById('material-icon').className = "fa-solid fa-file-circle-check text-indigo-600 text-2xl mb-2";
+        document.getElementById('btn-clear-material').classList.remove('hidden');
+        document.getElementById('material-preview-box').classList.remove('hidden');
+        
+        showToast("File materi berhasil dibaca!", "success");
+      };
+      reader.readAsText(file);
+    }
+
+    function clearMaterial() {
+      document.getElementById('materialFile').value = "";
+      materialTextContent = "";
+      document.getElementById('materialText').value = "";
+      
+      document.getElementById('material-title').innerText = "Pilih File Teks Rujukan";
+      document.getElementById('material-status').innerText = "Format file .txt (Opsional)";
+      document.getElementById('material-icon').className = "fa-solid fa-cloud-arrow-up text-slate-400 text-2xl mb-2";
+      document.getElementById('btn-clear-material').classList.add('hidden');
+      document.getElementById('material-preview-box').classList.add('hidden');
+      
+      showToast("Materi rujukan dibersihkan.", "info");
+    }
+
+    // Adjusting Option Count for PG Creation
+    function adjustOptionCount(delta) {
+      const display = document.getElementById('opt-count-display');
+      let current = parseInt(display.innerText) + delta;
+      if (current < 2) current = 2;
+      if (current > 5) current = 5; // A to E is max
+      display.innerText = current;
+      pgOptionCount = current;
+    }
+
+    // Type Selector UI Handler
+    function selectType(type) {
+      selectedTipe = type;
+      
+      // Update Selection buttons highlight
+      document.querySelectorAll('.type-btn').forEach(btn => {
+        btn.className = "type-btn p-3 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 text-left transition flex flex-col justify-between h-20 bg-white";
+        // Reset original icon color class
+        const icon = btn.querySelector('i');
+        icon.className = icon.className.replace('text-indigo-600', 'text-slate-500');
+      });
+
+      const selectedBtn = document.getElementById('btn-' + type);
+      selectedBtn.className = "type-btn p-3 rounded-xl border text-left transition flex flex-col justify-between h-20 border-indigo-500 bg-indigo-50/40 text-indigo-950";
+      const selectedIcon = selectedBtn.querySelector('i');
+      selectedIcon.className = selectedIcon.className.replace('text-slate-500', 'text-indigo-600');
+
+      // Toggle PG Config Panel visibility
+      const pgPanel = document.getElementById('pg-config-panel');
+      if (type === 'pilihan_ganda') {
+        pgPanel.classList.remove('hidden');
+      } else {
+        pgPanel.classList.add('hidden');
+      }
+    }
+
+    // Switch View Tab Filters
+    function switchTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = "tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition";
+      });
+      
+      const activeBtn = document.getElementById('tab-' + tab);
+      activeBtn.className = "tab-btn px-3 py-1.5 rounded-lg text-xs font-bold transition bg-white text-indigo-900 shadow-sm";
+
+      renderQuestionList();
+    }
+
+    // Sync state visual representation
+    function syncDisplayWithState() {
+      // Refresh stats
+      const countPg = bankSoal.pilihan_ganda.length;
+      const countUr = bankSoal.uraian.length;
+      const countNl = bankSoal.penalaran.length;
+      const countPr = bankSoal.proyek.length;
+      const total = countPg + countUr + countNl + countPr;
+
+      document.getElementById('stats-total').innerText = total;
+      document.getElementById('stats-pg').innerText = countPg;
+      document.getElementById('stats-ur').innerText = countUr;
+      document.getElementById('stats-nl').innerText = countNl;
+      document.getElementById('stats-pr').innerText = countPr;
+
+      // Handle empty state block
+      const emptyStateBlock = document.getElementById('empty-state');
+      const stickyAddBar = document.getElementById('sticky-add-bar');
+      if (total === 0) {
+        emptyStateBlock.classList.remove('hidden');
+        stickyAddBar.classList.add('hidden');
+      } else {
+        emptyStateBlock.classList.add('hidden');
+        stickyAddBar.classList.remove('hidden');
+      }
+
+      renderQuestionList();
+    }
+
+    // Build the list based on filter
+    function renderQuestionList() {
+      // Hide all layout sections first
+      document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
+
+      const showAll = activeTab === 'all';
+
+      // 1. Pilihan Ganda Section
+      if (showAll || activeTab === 'pilihan_ganda') {
+        const container = document.getElementById('target-pilihan_ganda');
+        container.innerHTML = "";
+        if (bankSoal.pilihan_ganda.length > 0) {
+          document.getElementById('list-pilihan_ganda').classList.remove('hidden');
+          bankSoal.pilihan_ganda.forEach((item, index) => {
+            container.appendChild(createQuestionCard(item, 'pilihan_ganda', index + 1));
+          });
+        }
+      }
+
+      // 2. Uraian Section
+      if (showAll || activeTab === 'uraian') {
+        const container = document.getElementById('target-uraian');
+        container.innerHTML = "";
+        if (bankSoal.uraian.length > 0) {
+          document.getElementById('list-uraian').classList.remove('hidden');
+          bankSoal.uraian.forEach((item, index) => {
+            container.appendChild(createQuestionCard(item, 'uraian', index + 1));
+          });
+        }
+      }
+
+      // 3. Penalaran Section
+      if (showAll || activeTab === 'penalaran') {
+        const container = document.getElementById('target-penalaran');
+        container.innerHTML = "";
+        if (bankSoal.penalaran.length > 0) {
+          document.getElementById('list-penalaran').classList.remove('hidden');
+          bankSoal.penalaran.forEach((item, index) => {
+            container.appendChild(createQuestionCard(item, 'penalaran', index + 1));
+          });
+        }
+      }
+
+      // 4. Proyek Section
+      if (showAll || activeTab === 'proyek') {
+        const container = document.getElementById('target-proyek');
+        container.innerHTML = "";
+        if (bankSoal.proyek.length > 0) {
+          document.getElementById('list-proyek').classList.remove('hidden');
+          bankSoal.proyek.forEach((item, index) => {
+            container.appendChild(createQuestionCard(item, 'proyek', index + 1));
+          });
+        }
+      }
+    }
+
+    // Create interactive question layout card component
+    function createQuestionCard(item, type, displayIndex) {
+      const cardOpacityClass = item.is_hidden ? 'opacity-50 bg-slate-50 grayscale-[20%]' : 'bg-white hover:shadow-md hover:border-slate-300';
+      
+      const card = document.createElement('div');
+      card.className = `${cardOpacityClass} p-5 rounded-2xl border border-slate-200 shadow-xs transition duration-300 space-y-4 group`;
+      
+      const header = document.createElement('div');
+      header.className = "flex items-start justify-between gap-4";
+      
+      const indexBadge = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold mr-2">${displayIndex}</span>`;
+      const titleText = type === 'proyek' ? item.judul : item.soal;
+      
+      const titleContainer = document.createElement('div');
+      titleContainer.className = "flex-1";
+      titleContainer.innerHTML = `<div class="text-sm font-bold text-slate-900 leading-relaxed flex items-start">${indexBadge} ${titleText}</div>`;
+      
+      const toggleIcon = item.is_hidden 
+            ? `<i class="fa-solid fa-eye-slash text-xs"></i>`
+            : `<i class="fa-solid fa-eye text-xs"></i>`;
+
+      const controls = document.createElement('div');
+      controls.className = "flex items-center space-x-2"; // Dibuat selalu muncul agar poin bisa diedit
+      
+      // Hitung index asli array (untuk manipulasi data)
+      const realIndex = bankSoal[type].findIndex(q => q.id === item.id);
+
+      controls.innerHTML = `
+        <div class="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 mr-2">
+          <label class="text-[10px] text-slate-500 font-bold mr-2 uppercase">Poin:</label>
+          <input type="number" value="${item.poin !== undefined ? item.poin : defaultPoints[type]}" 
+                 class="w-12 text-xs border border-slate-200 rounded p-1 text-center focus:ring-indigo-500 bg-white" 
+                 onchange="updateSoalPoin('${type}', '${item.id}', this.value)">
+        </div>
+        <button onclick="toggleSoalVisibility('${type}', '${item.id}')" class="p-1.5 hover:bg-slate-100 hover:text-indigo-600 rounded-lg text-slate-400 transition" title="Toggle Visibilitas">
+          ${toggleIcon}
+        </button>
+        <button onclick="editQuestionInline('${type}', '${item.id}')" class="p-1.5 hover:bg-slate-100 hover:text-indigo-600 rounded-lg text-slate-400 transition" title="Edit Soal">
+          <i class="fa-solid fa-pen text-xs"></i>
+        </button>
+        <button onclick="deleteQuestion('${type}', '${item.id}')" class="p-1.5 hover:bg-rose-50 hover:text-rose-600 rounded-lg text-slate-400 transition" title="Hapus Soal">
+          <i class="fa-solid fa-trash-can text-xs"></i>
+        </button>
+      `;
+
+      header.appendChild(titleContainer);
+      header.appendChild(controls);
+      card.appendChild(header);
+
+      // Card Content Body according to type
+      const body = document.createElement('div');
+      body.className = "text-xs space-y-3 pl-8";
+
+      if (type === 'pilihan_ganda') {
+        const optList = document.createElement('div');
+        optList.className = "grid grid-cols-1 md:grid-cols-2 gap-2";
+        item.opsi.forEach(opt => {
+          const isCorrect = opt.id === item.id_opsi_benar;
+          const optDiv = document.createElement('div');
+          optDiv.className = `p-2.5 rounded-lg border text-left flex items-start gap-2.5 transition ${isCorrect ? 'border-emerald-500 bg-emerald-50/20 text-emerald-950 font-semibold' : 'border-slate-100 bg-slate-50/30'}`;
+          optDiv.innerHTML = `
+            <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-white border ${isCorrect ? 'border-emerald-500 text-emerald-600 font-bold' : 'border-slate-200 text-slate-400'} text-[10px] shrink-0">${opt.id}</span>
+            <span class="leading-normal">${opt.teks}</span>
+          `;
+          optList.appendChild(optDiv);
+        });
+        body.appendChild(optList);
+
+      } else if (type === 'uraian') {
+        body.innerHTML = `
+          <div class="p-3 bg-indigo-50/20 border border-indigo-100/30 rounded-xl">
+            <span class="block font-bold text-[10px] text-indigo-700 uppercase tracking-wider mb-1">Kunci Jawaban Singkat:</span>
+            <p class="text-slate-600 leading-normal font-medium">${item.jawaban_singkat}</p>
+          </div>
+        `;
+      } else if (type === 'penalaran') {
+        body.innerHTML = `
+          <div class="p-3 bg-indigo-50/20 border border-indigo-100/30 rounded-xl">
+            <span class="block font-bold text-[10px] text-indigo-700 uppercase tracking-wider mb-1">Analisis Kunci Jawaban:</span>
+            <p class="text-slate-600 leading-normal font-medium">${item.paragraf_jawaban}</p>
+          </div>
+        `;
+      } else if (type === 'proyek') {
+        let stepsHtml = "";
+        item.langkah_langkah.forEach((st, i) => {
+          stepsHtml += `
+            <li class="flex items-start gap-2">
+              <span class="w-4 h-4 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-[9px] font-bold inline-flex items-center justify-center mt-0.5 shrink-0">${i+1}</span>
+              <span class="text-slate-600 leading-normal">${st}</span>
+            </li>
+          `;
+        });
+
+        body.innerHTML = `
+          <p class="text-slate-500 leading-normal italic mb-2">${item.deskripsi_proyek}</p>
+          <div class="p-4 bg-slate-50/50 border border-slate-100 rounded-xl">
+            <span class="block font-bold text-[10px] text-slate-700 uppercase tracking-wider mb-2">Panduan Pelaksanaan Proyek:</span>
+            <ul class="space-y-1.5">${stepsHtml}</ul>
+          </div>
+        `;
+      }
+
+      card.appendChild(body);
+      return card;
+    }
+
+    // Modal Control for Manual Adding & Editing
+    function openManualCreateModal() {
+      document.getElementById('modalQuestionTitle').innerText = "Tambah Pertanyaan Manual Baru";
+      document.getElementById('edit-id').value = "";
+      document.getElementById('edit-tipe').disabled = false;
+      document.getElementById('edit-tipe').value = selectedTipe;
+      
+      // Clear values
+      document.getElementById('edit-soal').value = "";
+      document.getElementById('edit-jawaban-singkat').value = "";
+      document.getElementById('edit-paragraf-jawaban').value = "";
+      document.getElementById('edit-proyek-judul').value = "";
+      document.getElementById('edit-proyek-deskripsi').value = "";
+      
+      adjustModalFields();
+      document.getElementById('questionModal').classList.remove('hidden');
+    }
+
+    function editQuestionInline(type, id) {
+      const item = bankSoal[type].find(q => q.id === id);
+      if (!item) return;
+
+      document.getElementById('modalQuestionTitle').innerText = "Edit Detail Pertanyaan";
+      document.getElementById('edit-id').value = id;
+      document.getElementById('edit-tipe').value = type;
+      document.getElementById('edit-tipe').disabled = true; // Lock type when editing
+      
+      if (type === 'pilihan_ganda') {
+        document.getElementById('edit-soal').value = item.soal;
+      } else if (type === 'uraian') {
+        document.getElementById('edit-soal').value = item.soal;
+        document.getElementById('edit-jawaban-singkat').value = item.jawaban_singkat;
+      } else if (type === 'penalaran') {
+        document.getElementById('edit-soal').value = item.soal;
+        document.getElementById('edit-paragraf-jawaban').value = item.paragraf_jawaban;
+      } else if (type === 'proyek') {
+        document.getElementById('edit-proyek-judul').value = item.judul;
+        document.getElementById('edit-proyek-deskripsi').value = item.deskripsi_proyek;
+      }
+
+      adjustModalFields(item);
+      document.getElementById('questionModal').classList.remove('hidden');
+    }
+
+    function closeQuestionModal() {
+      document.getElementById('questionModal').classList.add('hidden');
+    }
+
+    // Adapt modal fields according to selected type
+    function adjustModalFields(editItem = null) {
+      const type = document.getElementById('edit-tipe').value;
+      
+      // Reset blocks
+      document.getElementById('modal-field-soal').classList.add('hidden');
+      document.getElementById('modal-field-options').classList.add('hidden');
+      document.getElementById('modal-field-uraian').classList.add('hidden');
+      document.getElementById('modal-field-penalaran').classList.add('hidden');
+      document.getElementById('modal-field-proyek').classList.add('hidden');
+
+      if (type === 'pilihan_ganda') {
+        document.getElementById('modal-field-soal').classList.remove('hidden');
+        document.getElementById('modal-field-options').classList.remove('hidden');
+        populateModalOptions(editItem);
+      } else if (type === 'uraian') {
+        document.getElementById('modal-field-soal').classList.remove('hidden');
+        document.getElementById('modal-field-uraian').classList.remove('hidden');
+      } else if (type === 'penalaran') {
+        document.getElementById('modal-field-soal').classList.remove('hidden');
+        document.getElementById('modal-field-penalaran').classList.remove('hidden');
+      } else if (type === 'proyek') {
+        document.getElementById('modal-field-proyek').classList.remove('hidden');
+        populateModalSteps(editItem);
+      }
+    }
+
+    // Memperbarui atribut poin per soal secara individu (berdasarkan ID)
+    function updateSoalPoin(tipe, id, newValue) {
+      const idx = bankSoal[tipe].findIndex(q => q.id === id);
+      if (idx !== -1) {
+         bankSoal[tipe][idx].poin = parseInt(newValue) || 0;
+      }
+    }
+
+    // Toggle Sembunyikan/Tampilkan soal
+    function toggleSoalVisibility(tipe, id) {
+      const idx = bankSoal[tipe].findIndex(q => q.id === id);
+      if (idx !== -1) {
+         bankSoal[tipe][idx].is_hidden = !bankSoal[tipe][idx].is_hidden;
+         renderQuestionList(); // Render ulang untuk efek UI
+      }
+    }
+
+    function populateModalOptions(editItem) {
+      const container = document.getElementById('modal-options-container');
+      container.innerHTML = "";
+
+      let count = pgOptionCount;
+      let opts = [];
+      let correctId = 'A';
+
+      if (editItem) {
+        count = editItem.opsi.length;
+        opts = editItem.opsi;
+        correctId = editItem.id_opsi_benar;
+      } else {
+        const identifiers = ['A', 'B', 'C', 'D', 'E'];
+        for (let i = 0; i < count; i++) {
+          opts.push({ id: identifiers[i], teks: "" });
+        }
+      }
+
+      opts.forEach(opt => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = "flex items-center space-x-2";
+        itemDiv.innerHTML = `
+          <input type="radio" name="modalCorrectOpt" value="${opt.id}" ${opt.id === correctId ? 'checked' : ''} class="w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-slate-300">
+          <span class="text-xs font-bold text-slate-500 w-4">${opt.id}</span>
+          <input type="text" data-opt-id="${opt.id}" required value="${opt.teks}" class="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500" placeholder="Ketik pilihan jawaban ${opt.id}...">
+        `;
+        container.appendChild(itemDiv);
+      });
+    }
+
+    function populateModalSteps(editItem) {
+      const container = document.getElementById('modal-steps-container');
+      container.innerHTML = "";
+
+      let steps = ["Langkah pertama...", "Langkah kedua...", "Langkah ketiga..."];
+      if (editItem) {
+        steps = editItem.langkah_langkah;
+      }
+
+      steps.forEach((st, i) => {
+        addModalProjectStep(st);
+      });
+    }
+
+    function addModalProjectStep(val = "") {
+      const container = document.getElementById('modal-steps-container');
+      const stepDiv = document.createElement('div');
+      stepDiv.className = "flex items-center space-x-2 step-row";
+      stepDiv.innerHTML = `
+        <span class="step-num text-xs font-bold text-slate-400 w-5"></span>
+        <input type="text" required value="${val}" class="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500" placeholder="Ketik langkah pengerjaan...">
+        <button type="button" onclick="removeModalProjectStep(this)" class="text-slate-400 hover:text-rose-600 px-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+      `;
+      container.appendChild(stepDiv);
+      renumberModalSteps();
+    }
+
+    function removeModalProjectStep(btn) {
+      btn.closest('.step-row').remove();
+      renumberModalSteps();
+    }
+
+    function renumberModalSteps() {
+      const rows = document.querySelectorAll('#modal-steps-container .step-row');
+      rows.forEach((row, index) => {
+        row.querySelector('.step-num').innerText = (index + 1) + ".";
+      });
+    }
+
+    // Save/Update logic from modal
+    function saveQuestion(e) {
+      e.preventDefault();
+      
+      const id = document.getElementById('edit-id').value;
+      const type = document.getElementById('edit-tipe').value;
+      
+      let finalObj = {};
+
+      if (id) {
+        // Edit Mode
+        finalObj.id = id;
+      } else {
+        // Create Mode
+        const prefix = { pilihan_ganda: 'pg-', uraian: 'ur-', penalaran: 'nl-', proyek: 'pr-' }[type];
+        finalObj.id = prefix + (bankSoal[type].length + 1) + '-' + Math.floor(Math.random() * 1000);
+      }
+
+      // Collect specific fields
+      if (type === 'pilihan_ganda') {
+        finalObj.soal = document.getElementById('edit-soal').value;
+        finalObj.opsi = [];
+        const optInputs = document.querySelectorAll('#modal-options-container input[type="text"]');
+        optInputs.forEach(input => {
+          finalObj.opsi.push({
+            id: input.getAttribute('data-opt-id'),
+            teks: input.value
+          });
+        });
+        const checkedRadio = document.querySelector('input[name="modalCorrectOpt"]:checked');
+        finalObj.id_opsi_benar = checkedRadio ? checkedRadio.value : 'A';
+
+      } else if (type === 'uraian') {
+        finalObj.soal = document.getElementById('edit-soal').value;
+        finalObj.jawaban_singkat = document.getElementById('edit-jawaban-singkat').value;
+
+      } else if (type === 'penalaran') {
+        finalObj.soal = document.getElementById('edit-soal').value;
+        finalObj.paragraf_jawaban = document.getElementById('edit-paragraf-jawaban').value;
+
+      } else if (type === 'proyek') {
+        finalObj.judul = document.getElementById('edit-proyek-judul').value;
+        finalObj.deskripsi_proyek = document.getElementById('edit-proyek-deskripsi').value;
+        finalObj.langkah_langkah = [];
+        const stepInputs = document.querySelectorAll('#modal-steps-container input[type="text"]');
+        stepInputs.forEach(input => {
+          finalObj.langkah_langkah.push(input.value);
+        });
+      }
+
+      if (id) {
+        // Update existing inside array
+        const idx = bankSoal[type].findIndex(q => q.id === id);
+        if (idx !== -1) bankSoal[type][idx] = finalObj;
+        showToast("Soal berhasil diperbarui!", "success");
+      } else {
+        // Push new
+        bankSoal[type].push(finalObj);
+        showToast("Soal baru berhasil ditambahkan!", "success");
+      }
+
+      closeQuestionModal();
+      syncDisplayWithState();
+    }
+
+    // Delete question
+    function deleteQuestion(type, id) {
+      bankSoal[type] = bankSoal[type].filter(q => q.id !== id);
+      showToast("Soal berhasil dihapus.", "info");
+      syncDisplayWithState();
+    }
+
+    // Prompt Constructor and AI Generation Pipeline
+    async function requestGenerateQuestion() {
+      const apiKey = localStorage.getItem('gemini_api_key') || "";
+      const model = localStorage.getItem('gemini_model_choice') || mainConfig.model_default;
+      const debugCheckbox = document.getElementById('debugMode').checked;
+
+      // Pengecekan apakah file JSON instruksi sudah berhasil diload dari folder
+      if (!instructionMain || !instructionsTypes[selectedTipe]) {
+        showToast("File instruksi belum termuat! Pastikan struktur folder /instruction/ sudah benar.", "error");
+        return;
+      }
+
+      // 1. Build Payload
+      const targetInstructionType = JSON.parse(JSON.stringify(instructionsTypes[selectedTipe]));
+      
+      // Inject dynamic settings for Pilihan Ganda inside QuestionInstruction
+      if (selectedTipe === 'pilihan_ganda') {
+        const letters = ['A', 'B', 'C', 'D', 'E'].slice(0, pgOptionCount).join(', ');
+        targetInstructionType.konfigurasi_dinamis.jumlah_opsi = pgOptionCount.toString();
+        targetInstructionType.konfigurasi_dinamis.susunan_id_opsi = letters;
+        
+        // Replace in instruction text strings
+        targetInstructionType.instruksi_spesifik = targetInstructionType.instruksi_spesifik.map(inst => {
+          return inst.replace(/{JUMLAH_OPSI}/g, pgOptionCount).replace(/{DAFTAR_ID_OPSI}/g, letters);
+        });
+      }
+
+      const activeExistedQuestions = bankSoal[selectedTipe];
+      const readMaterial = document.getElementById('materialText').value.trim() || materialTextContent || "";
+      const currentJudul = document.getElementById('inputJudul').value || "Ujian Baru";
+      const currentDeskripsi = document.getElementById('inputDeskripsi').value.trim();
+      const currentCustomPrompt = document.getElementById('inputCustomPrompt').value.trim();
+
+      // Combined package structure
+      const assembledPrompt = {
+        InstructionMain: instructionMain,
+        JudulSoalProyek: currentJudul,
+        DeskripsiSoal: currentDeskripsi,
+        CustomPrompt: currentCustomPrompt,
+        QuestionInstruction: targetInstructionType,
+        ExistedQuestion: activeExistedQuestions.length > 0 ? activeExistedQuestions : [],
+        MaterialFile: readMaterial
+      };
+
+      // 2. Mode Debug Execution
+      if (debugCheckbox) {
+        downloadDebugPrompt(assembledPrompt);
+        return;
+      }
+
+      // 3. Validation API Key
+      if (!apiKey) {
+        showToast("Harap masukkan API Key Gemini Anda terlebih dahulu di bagian Konfigurasi AI!", "error");
+        toggleConfigModal();
+        return;
+      }
+
+      // 4. API Request & Loading Flow
+      toggleLoadingOverlay(true);
+      const textQuery = JSON.stringify(assembledPrompt, null, 2);
+      
+      // Formulating system prompt instructions
+      const systemPrompt = "Anda adalah program generator soal otomatis terstruktur dalam format JSON mentah. Output Anda wajib mengikuti properti format_output yang diberikan di parameter. Dilarang memberikan teks pengantar atau penutup markdown block.";
+
+      const payload = {
+        contents: [
+          {
+            parts: [{ text: textQuery }]
+          }
+        ],
+        systemInstruction: {
+          parts: [{ text: systemPrompt }]
+        }
+      };
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+      try {
+        const responseText = await makeApiCallWithBackoff(url, payload);
+        processResponse(responseText);
+      } catch (err) {
+        console.error("API Error: ", err);
+        showCustomErrorModal(`Gagal menghubungi server AI: ${err.message}. Harap verifikasi API Key Anda, batasan kuota gratisan model, atau coba beberapa saat lagi.`);
+      } finally {
+        toggleLoadingOverlay(false);
+      }
+    }
+
+    // Exponential Backoff implementation as required (retry up to 5 times: 1s, 2s, 4s, 8s, 16s)
+    async function makeApiCallWithBackoff(url, payload) {
+      const delays = [1000, 2000, 4000, 8000, 16000];
+      const maxRetries = delays.length;
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            const errCode = res.status;
+            const errMsg = errData.error?.message || "Kesalahan Tidak Dikenal";
+            throw new Error(`HTTP ${errCode}: ${errMsg}`);
+          }
+
+          const data = await res.json();
+          const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!textResponse) {
+            throw new Error("Respon kosong diterima dari API Gemini.");
+          }
+          return textResponse;
+
+        } catch (error) {
+          if (attempt === maxRetries) {
+            throw error; // All retries failed, bubble up error
+          }
+          // Update status in loading UI without logging in console
+          const progressDetails = document.getElementById('loading-details');
+          if (progressDetails) {
+            progressDetails.innerText = `Menghubungkan ulang ke API (Koneksi sibuk)... Mencoba kembali dalam ${delays[attempt] / 1000} detik.`;
+          }
+          await new Promise(resolve => setTimeout(resolve, delays[attempt]));
+        }
+      }
+    }
+
+    // Processing & Sanity check of AI Output
+    function processResponse(rawText) {
+      try {
+        // Strip markdown backticks ```json ... ``` if AI returned it
+        let cleanText = rawText.trim();
+        if (cleanText.startsWith("```")) {
+          cleanText = cleanText.replace(/^```[a-zA-Z]*\n/, '').replace(/\n```$/, '').trim();
+        }
+
+        const data = JSON.parse(cleanText);
+
+        // Check if model returned an explicit error object according to 'kebijakan_penanganan_gagal'
+        if (data.error || data.error === "true") {
+          showCustomErrorModal(`Gagal membuat soal. Alasan AI: ${data.pesan || 'Materi tidak mendukung.'}`);
+          return;
+        }
+
+        // Inject atribut bawaan baru
+        data.poin = defaultPoints[selectedTipe];
+        data.is_hidden = false;
+
+        // Validate structure based on selected type
+        if (selectedTipe === 'pilihan_ganda') {
+          if (!data.soal || !Array.isArray(data.opsi) || !data.id_opsi_benar) {
+            throw new Error("Skema Pilihan Ganda tidak sesuai.");
+          }
+          // Set custom ID for tracking
+          data.id = 'pg-' + (bankSoal.pilihan_ganda.length + 1) + '-' + Math.floor(Math.random() * 1000);
+          bankSoal.pilihan_ganda.push(data);
+
+        } else if (selectedTipe === 'uraian') {
+          if (!data.soal || !data.jawaban_singkat) {
+            throw new Error("Skema Uraian tidak sesuai.");
+          }
+          data.id = 'ur-' + (bankSoal.uraian.length + 1) + '-' + Math.floor(Math.random() * 1000);
+          bankSoal.uraian.push(data);
+
+        } else if (selectedTipe === 'penalaran') {
+          if (!data.soal || !data.paragraf_jawaban) {
+            throw new Error("Skema Penalaran tidak sesuai.");
+          }
+          data.id = 'nl-' + (bankSoal.penalaran.length + 1) + '-' + Math.floor(Math.random() * 1000);
+          bankSoal.penalaran.push(data);
+
+        } else if (selectedTipe === 'proyek') {
+          if (!data.judul || !data.deskripsi_proyek || !Array.isArray(data.langkah_langkah)) {
+            throw new Error("Skema Proyek tidak sesuai.");
+          }
+          data.id = 'pr-' + (bankSoal.proyek.length + 1) + '-' + Math.floor(Math.random() * 1000);
+          bankSoal.proyek.push(data);
+        }
+
+        showToast("Berhasil menghasilkan 1 soal baru berkualitas!", "success");
+        syncDisplayWithState();
+
+      } catch (err) {
+        console.error("Format parsing error: ", rawText);
+        showCustomErrorModal(`Terjadi kesalahan parsing output JSON AI. Harap coba model lain atau kurangi materi input.\nDetail: ${err.message}`);
+      }
+    }
+
+    // Download Assembled prompt block on Debug Mode
+    function downloadDebugPrompt(promptObj) {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(promptObj, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      
+      const fileName = `DebugPrompt_${selectedTipe}_${new Date().toISOString().slice(0,10)}.json`;
+      downloadAnchor.setAttribute("download", fileName);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+
+      showToast("Debug Prompt berhasil diunduh!", "success");
+    }
+
+    // Trigger Import JSON Input
+    function triggerImport() {
+      document.getElementById('importFile').click();
+    }
+
+    // Impor Handler for JSON Bank Soal
+    function handleImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importData = JSON.parse(e.target.result);
+          
+          // MODIFIKASI: Membaca metadata tambahan (Deskripsi & Custom Prompt)
+          if (importData.metadata) {
+            if (importData.metadata.judul_soal) {
+              document.getElementById('inputJudul').value = importData.metadata.judul_soal;
+              document.getElementById('displayJudulSoal').innerText = importData.metadata.judul_soal;
+            }
+            if (importData.metadata.deskripsi_soal !== undefined) {
+              document.getElementById('inputDeskripsi').value = importData.metadata.deskripsi_soal;
+            }
+            if (importData.metadata.custom_prompt !== undefined) {
+              document.getElementById('inputCustomPrompt').value = importData.metadata.custom_prompt;
+            }
+          }
+
+          if (importData.daftar_soal) {
+            const ds = importData.daftar_soal;
+            bankSoal.pilihan_ganda = Array.isArray(ds.pilihan_ganda) ? ds.pilihan_ganda : [];
+            bankSoal.uraian = Array.isArray(ds.uraian) ? ds.uraian : [];
+            bankSoal.penalaran = Array.isArray(ds.penalaran) ? ds.penalaran : [];
+            bankSoal.proyek = Array.isArray(ds.proyek) ? ds.proyek : [];
+            
+            showToast("Sukses mengimpor bank soal!", "success");
+            syncDisplayWithState();
+          } else {
+            throw new Error("Properti 'daftar_soal' tidak ditemukan.");
+          }
+        } catch (err) {
+          showCustomErrorModal("Gagal memproses file impor JSON. Pastikan skema format data sesuai standar.\nDetail: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+      // Reset input value to allow importing same file again
+      document.getElementById('importFile').value = "";
+    }
+
+    // Export current Bank Soal to JSON
+    function exportToJSON() {
+      const exportStruct = {
+        metadata: {
+          judul_soal: document.getElementById('inputJudul').value || "Ujian",
+          deskripsi_soal: document.getElementById('inputDeskripsi').value || "",
+          custom_prompt: document.getElementById('inputCustomPrompt').value || ""
+        },
+        daftar_soal: bankSoal
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportStruct, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      
+      const slugTitle = (document.getElementById('inputJudul').value || "Ujian").toLowerCase().replace(/[^a-z0-9]+/g, '_');
+      downloadAnchor.setAttribute("download", `BankSoal_${slugTitle}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+
+      showToast("Berhasil mengekspor format JSON!", "success");
+    }
+
+    // Export bank soal into an elegant Word-compatible Doc format
+    function exportToDoc() {
+      const judul = document.getElementById('inputJudul').value || "Ujian Akhir";
+      
+      // 1. Memfilter soal untuk mengabaikan yang berstatus hidden
+      const pgAktif = bankSoal.pilihan_ganda.filter(item => !item.is_hidden);
+      const uraianAktif = bankSoal.uraian.filter(item => !item.is_hidden);
+      const nalarAktif = bankSoal.penalaran.filter(item => !item.is_hidden);
+      const proyekAktif = bankSoal.proyek.filter(item => !item.is_hidden);
+
+      // 2. Modifikasi Styling dengan perbaikan dukungan List dan Page Break
+      let htmlDoc = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+          <title>${judul}</title>
+          <style>
+            body { font-family: 'Times New Roman', Times, serif; line-height: 1.5; color: #000; }
+            h1 { text-align: center; font-size: 16pt; margin-bottom: 20px; font-weight: bold; text-transform: uppercase; }
+            h2 { font-size: 14pt; margin-top: 30px; margin-bottom: 15px; font-weight: bold; text-transform: uppercase; }
+            
+            /* Penyesuaian Style untuk List HTML asli */
+            ol { padding-left: 24px; margin-top: 5px; margin-bottom: 15px; }
+            li { font-size: 12pt; margin-bottom: 10px; page-break-inside: avoid; }
+            ol[type="A"] li { margin-bottom: 4px; }
+            
+            .soal-text { margin-bottom: 5px; }
+            .jawaban-box { margin-bottom: 10px; font-size: 12pt; }
+            .step-list { margin-top: 5px; }
+          </style>
+        </head>
+        <body>
+          <h1>${judul}</h1>
+          <h1 style="font-size: 14pt; margin-top: -10px;">LEMBAR SOAL</h1>
+      `;
+
+      // --- BAGIAN SOAL ---
+      if (pgAktif.length > 0) {
+        htmlDoc += `<h2>I. Pilihan Ganda</h2><ol>`;
+        pgAktif.forEach((item) => {
+          htmlDoc += `
+            <li>
+              <div class="soal-text">${item.soal}</div>
+              <ol type="A">
+          `;
+          item.opsi.forEach(opt => {
+            htmlDoc += `<li>${opt.teks}</li>`;
+          });
+          htmlDoc += `
+              </ol>
+            </li>
+          `;
+        });
+        htmlDoc += `</ol>`;
+      }
+
+      if (uraianAktif.length > 0) {
+        htmlDoc += `<h2>II. Soal Uraian</h2><ol>`;
+        uraianAktif.forEach((item) => {
+          htmlDoc += `
+            <li>
+              <div class="soal-text">${item.soal}</div>
+            </li>
+          `;
+        });
+        htmlDoc += `</ol>`;
+      }
+
+      if (nalarAktif.length > 0) {
+        htmlDoc += `<h2>III. Soal Analisis / Penalaran Kritis</h2><ol>`;
+        nalarAktif.forEach((item) => {
+          htmlDoc += `
+            <li>
+              <div class="soal-text">${item.soal}</div>
+            </li>
+          `;
+        });
+        htmlDoc += `</ol>`;
+      }
+
+      // MODIFIKASI: Menambahkan langkah-langkah proyek langsung di bagian soal
+      if (proyekAktif.length > 0) {
+        htmlDoc += `<h2>IV. Penugasan Proyek Pembelajaran</h2><ol>`;
+        proyekAktif.forEach((item) => {
+          htmlDoc += `
+            <li>
+              <div class="soal-text">Proyek: ${item.judul}</div>
+              <p style="font-size: 12pt; margin: 4px 0;">${item.deskripsi_proyek}</p>
+              <div class="step-list">
+                <strong>Panduan Langkah:</strong>
+                <ol>
+          `;
+          item.langkah_langkah.forEach((st) => {
+            htmlDoc += `<li>${st}</li>`;
+          });
+          htmlDoc += `
+                </ol>
+              </div>
+            </li>
+          `;
+        });
+        htmlDoc += `</ol>`;
+      }
+
+      // --- PEMISAH HALAMAN (PAGE BREAK) ---
+      // Trik paling ampuh agar terdeteksi oleh Word Processor sebagai halaman baru yang murni
+      htmlDoc += `<br clear="all" style="page-break-before:always" />`;
+      
+      htmlDoc += `<h1>KUNCI JAWABAN</h1>`;
+
+      // --- BAGIAN KUNCI JAWABAN ---
+      if (pgAktif.length > 0) {
+        htmlDoc += `<h2>I. Pilihan Ganda</h2><ol>`;
+        pgAktif.forEach((item) => {
+          // MODIFIKASI: Menghapus teks "Kunci:" dan langsung menampilkan ID Opsi
+          htmlDoc += `
+            <li><div class="jawaban-box">${item.id_opsi_benar}</div></li>
+          `;
+        });
+        htmlDoc += `</ol>`;
+      }
+
+      if (uraianAktif.length > 0) {
+        htmlDoc += `<h2>II. Soal Uraian</h2><ol>`;
+        uraianAktif.forEach((item) => {
+          htmlDoc += `
+            <li><div class="jawaban-box">${item.jawaban_singkat}</div></li>
+          `;
+        });
+        htmlDoc += `</ol>`;
+      }
+
+      if (nalarAktif.length > 0) {
+        htmlDoc += `<h2>III. Soal Analisis / Penalaran Kritis</h2><ol>`;
+        nalarAktif.forEach((item) => {
+          htmlDoc += `
+            <li><div class="jawaban-box">${item.paragraf_jawaban}</div></li>
+          `;
+        });
+        htmlDoc += `</ol>`;
+      }
+
+      // MODIFIKASI: Blok Kunci Jawaban untuk Proyek telah dihapus
+
+      htmlDoc += `</body></html>`;
+
+      // Make blob with word mime type
+      const blob = new Blob(['\ufeff' + htmlDoc], {
+        type: 'application/msword'
+      });
+
+      const url = URL.createObjectURL(blob);
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.href = url;
+      const slugTitle = (judul).toLowerCase().replace(/[^a-z0-9]+/g, '_');
+      downloadAnchor.download = `LembarSoal_${slugTitle}.doc`;
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      document.body.removeChild(downloadAnchor);
+
+      showToast("Dokumen lembar soal diunduh!", "success");
+    }
+
+    // Load initial mockup data to demonstrate functionality easily
+    function loadExampleData() {
+      bankSoal = {
+        pilihan_ganda: [
+          {
+            "id": "pg-1",
+            "soal": "Manakah dari gas berikut yang memiliki persentase volume terbesar di dalam atmosfer bumi?",
+            "opsi": [
+              { "id": "A", "teks": "Oksigen" },
+              { "id": "B", "teks": "Nitrogen" },
+              { "id": "C", "teks": "Karbon Dioksida" },
+              { "id": "D", "teks": "Argon" }
+            ],
+            "id_opsi_benar": "B"
+          }
+        ],
+        uraian: [
+          {
+            "id": "ur-1",
+            "soal": "Jelaskan secara singkat apa fungsi dari pembuluh xilem pada jaringan tumbuhan!",
+            "jawaban_singkat": "Pembuluh xilem berfungsi untuk mengangkut air dan garam mineral dari dalam tanah (melalui akar) menuju ke daun untuk proses fotosintesis."
+          }
+        ],
+        penalaran: [
+          {
+            "id": "nl-1",
+            "soal": "Mengapa daerah pegunungan cenderung memiliki suhu udara yang lebih dingin dibandingkan dengan daerah pesisir pantai? Hubungkan penjelasanmu dengan kerapatan molekul udara!",
+            "paragraf_jawaban": "Suhu di pegunungan lebih dingin karena letaknya yang lebih tinggi menyebabkan tekanan udara menurun. Penurunan tekanan ini membuat kerapatan molekul udara di pegunungan menjadi lebih renggang, sehingga kemampuan udara untuk menyerap dan menahan panas dari radiasi matahari menjadi jauh lebih rendah."
+          }
+        ],
+        proyek: [
+          {
+            "id": "pr-1",
+            "judul": "Pembuatan Miniatur Siklus Air Menggunakan Barang Bekas",
+            "deskripsi_proyek": "Proyek praktis ini bertujuan untuk membantu siswa memahami proses evaporasi, kondensasi, dan presipitasi secara visual dengan merancang alat peraga sederhana dari material daur ulang.",
+            "langkah_langkah": [
+              "Siapkan sebuah botol plastik transparan ukuran besar (1,5 Liter), gunting, air hangat, mangkuk kecil, pewarna makanan biru, dan es batu.",
+              "Potong botol plastik menjadi dua bagian secara horizontal (bagian atas dan bagian bawah).",
+              "Isi bagian bawah botol dengan air hangat yang telah diberi beberapa tetes pewarna makanan biru.",
+              "Letakkan mangkuk kecil di tengah-tengah air tersebut (pastikan mangkuk tidak tenggelam atau terisi air biru langsung).",
+              "Letakkan potongan kepala botol secara terbalik di atas botol bagian bawah.",
+              "Letakkan beberapa butir es batu di atas bagian corong yang terbalik tersebut.",
+              "Amati terbentuknya uap air (evaporasi), embun (kondensasi), hingga tetesan air yang jatuh ke dalam mangkuk kecil (presipitasi)."
+            ]
+          }
+        ]
+      };
+      showToast("Data contoh berhasil dimuat!", "success");
+      syncDisplayWithState();
+    }
+
+    function clearAllQuestions() {
+      if (confirm("Apakah Anda yakin ingin menghapus seluruh soal dari daftar saat ini? Tindakan ini tidak dapat dibatalkan.")) {
+        bankSoal = { pilihan_ganda: [], uraian: [], penalaran: [], proyek: [] };
+        syncDisplayWithState();
+        showToast("Daftar soal dikosongkan.", "info");
+      }
+    }
+
+    // Modal Error Display (Replacing Browser standard Alert)
+    function showCustomErrorModal(message) {
+      // Build simple beautiful absolute overlay warning modal
+      const modal = document.createElement('div');
+      modal.className = "fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[60]";
+      modal.innerHTML = `
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+          <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto">
+            <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+          </div>
+          <div class="text-center">
+            <h4 class="text-base font-bold text-slate-900">Operasi Gagal / Eror</h4>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed whitespace-pre-wrap">${message}</p>
+          </div>
+          <button onclick="this.closest('.fixed').remove()" class="w-full py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs transition hover:bg-slate-800">Tutup Notifikasi</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    // Toast Alert Notification Box controller
+    function showToast(message, type = "info") {
+      const toast = document.getElementById('toast');
+      const text = document.getElementById('toast-message');
+      const iconBox = document.getElementById('toast-icon');
+
+      text.innerText = message;
+      
+      if (type === "success") {
+        iconBox.className = "w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs shrink-0";
+        iconBox.innerHTML = `<i class="fa-solid fa-check"></i>`;
+      } else if (type === "error") {
+        iconBox.className = "w-6 h-6 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center text-xs shrink-0";
+        iconBox.innerHTML = `<i class="fa-solid fa-xmark"></i>`;
+      } else {
+        iconBox.className = "w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs shrink-0";
+        iconBox.innerHTML = `<i class="fa-solid fa-info"></i>`;
+      }
+
+      toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 pointer-events-auto";
+      
+      setTimeout(() => {
+        toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none";
+      }, 3500);
+    }
+
+    function toggleLoadingOverlay(show) {
+      const loader = document.getElementById('loadingOverlay');
+      if (show) {
+        // Reset message
+        document.getElementById('loading-details').innerText = "Menggunakan metode Exponential Backoff untuk kelancaran koneksi API. Mohon tunggu sebentar.";
+        loader.classList.remove('hidden');
+      } else {
+        loader.classList.add('hidden');
+      }
+    }
+  </script>
+</body>
+</html>

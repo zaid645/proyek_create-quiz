@@ -1,0 +1,30 @@
+{
+  "tipe_soal": "Uraian",
+  "deskripsi_tugas": "Buatlah tepat 1 (satu) soal uraian singkat baru yang memerlukan jawaban sangat pendek (1 hingga 5 kata) berupa istilah, sebutan, nama, atau alasan instan berdasarkan materi yang dirujuk.",
+  "instruksi_spesifik": [
+    "Soal wajib berupa satu kalimat tanya atau perintah yang pendek, langsung pada inti, dan tidak bertele-tele.",
+    "Hindari membuat soal dengan pengantar cerita yang panjang. Fokus pada pertanyaan langsung.",
+    "Nilai dari 'jawaban_singkat' harus sangat pendek dan langsung ke inti jawaban, dengan batasan panjang hanya 1 sampai 5 kata saja."
+  ],
+  "contoh_soal_berkualitas": [
+    {
+      "fokus": "Istilah atau Sebutan",
+      "soal": "Apa sebutan untuk proses penguapan air oleh panas matahari dalam siklus air?",
+      "jawaban_singkat": "Evaporasi"
+    },
+    {
+      "fokus": "Alasan Instan",
+      "soal": "Mengapa kita wajib memakai helm saat mengendarai sepeda motor?",
+      "jawaban_singkat": "Melindungi kepala dari benturan"
+    },
+    {
+      "fokus": "Nama Komponen",
+      "soal": "Alat apa yang digunakan untuk mengukur suhu tubuh manusia?",
+      "jawaban_singkat": "Termometer"
+    }
+  ],
+  "format_output": {
+    "soal": "Tuliskan pertanyaan satu kalimat pendek langsung di sini.",
+    "jawaban_singkat": "Tuliskan jawaban instan sepanjang 1 sampai 5 kata saja."
+  }
+}

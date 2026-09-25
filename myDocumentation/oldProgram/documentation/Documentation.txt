@@ -1,0 +1,107 @@
+====== ===== ====== ===== ====== ====== ===== ====== ===== ======
+IDENTITAS PROYEK
+====== ===== ====== ===== ====== ====== ===== ====== ===== ======
+Judul		: Generator Pertanyaan Otomatis - Low and Free AI Integration
+Deskripsi	: Halaman html terintegrasi API Key AI Gemini (dari Google) untuk menggenerate soal secara otomatis.
+Spesifikasi	:
+- Menghasilkan soal berdasarkan 4 tipe pertanyann; pilihan ganda, uraian, penalaran, dan proyek.
+	- Pilihan ganda	> Soal sederhana di mana satu opsi pilihan benar.
+		Jumlah opsi pilihan bisa diatur pengguna
+	- Uraian			> Soal dengan jawaban isi tulisan pendek (beberapa kalimat).
+	- Penalaran		> Soal yang menantang kemampuan bernalar murid, misal dengan kata "jelaskan", "mengapa", "sebutkan beberapa contoh".
+	- Proyek			> Tipe yang memberikan instruksi kepada murid untuk melakukan sesuatu.
+- Expor soal yang telah dibuat --> opsi pilihan json/doc.
+- Import soal (dalam bentuk json) untuk melakukan modifikasi.
+- Edit soal di dalam halaman html
+- Import file materi (dalam bentuk txt) yang akan diikutsertakan dalam prompt AI.
+- AI Api Key Integrated untuk opsi membuat soal secara otomatis.
+	Perlu menyediakan kolom agar pengguna memasukkan Api Key-nya dari Google AI Studio (simpan di browser agar tidak memasukkan ulang)
+	Limitasi		: Karena menggunakan model gratisan, hanya bisa menggenerate satu soal per satu kali pertanyaan.
+	Opsi model	: ["gemini-3.5-flash, gemini-3.1-flash-lite, gemini-3.0-flash, gemini-2.5-flash, gemini-2.5-flash-lite]
+	
+
+
+
+
+====== ===== ====== ===== ====== ====== ===== ====== ===== ======
+PEMETAAN FILE
+====== ===== ====== ===== ====== ====== ===== ====== ===== ======
+/root
+- index.html				-> File html utama yang berisi halaman untuk membuka editor.
+- MainConfig.json			-> Konfigurasi utama yang berisi Apikey dan daftar model.
+
+/root/instruction
+- InstructionMain.json		-> File berisi instruksi utama yang selalu dikirimkan, berisi hal-hal inti seperti role AI dan apa yang boleh dan tidak boleh dilakukan AI.
+- InstructionNalar.json		-> Berisi instruksi untuk tipe soal penalaran.
+- InstructionPilihan.json		-> Berisi instruksi untuk tipe soal pilihan ganda.
+- InstructionProject.json	-> Berisi instruksi untuk tipe soal proyek.
+- InstructionUraian.json		-> Berisi instruksi untuk tipe soal uraian.
+Catatan:
+Tiap-tiap instruksi tipe soal akan mengharapkan format data sendiri untuk bisa dimasukkan dalam tabel.
+
+
+
+
+====== ===== ====== ===== ====== ====== ===== ====== ===== ======
+ALUR DATA
+====== ===== ====== ===== ====== ====== ===== ====== ===== ======
+### Pemberian instruksi
+Mengambil dari file InstructionMain.json --> Menambahkan sesuai jenis soal --> Mengikutsertakan soal dari tipe ini agar tidak ada soal yang terlalu mirip --> Menambahkan file materi jika ada --> Dikirim ke AI --> Mendapat respon --> Mengisi kolom sesuai nomor soal yang dikirim (jika gagal, karena tidak ada respon/bentuk format dilain dari harapan, menunjukkan notif bahwa respon gagal dan perlu coba beberapa saat/coba model lain).
+Catatan:
+- Untuk mode debug/uji coba, dari pada mengirimkan ke AI akan mengunduh file json yang berisi instruksi yang nantinya akan dikirim ke AI (ini untuk melihat apa yang akan dikirimkan sehingga bisa mengecek prompt).
+- Prompt dalam bentuk json. Rencananya kurang lebih akan berbentuk:
+InstructionMain: (ambil dari file InstructionMain.json)
+QuestionInstruction: (ambil dari salah satu file instruksi tipe soal)
+ExistedQuestion: (Soal dari tipe soal saat ini)
+MaterialFile: (File materi agar AI bisa mengambil berdasarkan materi; jika ada)
+
+
+
+
+
+
+====== ===== ====== ===== ====== ====== ===== ====== ===== ======
+FORMAT OUTPUT AI
+====== ===== ====== ===== ====== ====== ===== ====== ===== ======
+### Pilihan Ganda
+"format_output": {
+    "soal": "Tuliskan pertanyaan pilihan ganda di sini.",
+    "opsi": [
+      {
+        "id": "A",
+        "teks": "Teks opsi A"
+      }
+    ],
+    "id_opsi_benar": "A"
+  }
+
+### Uraian
+"format_output": {
+    "soal": "Tuliskan pertanyaan uraian di sini.",
+    "jawaban_singkat": "Tuliskan kunci jawaban singkat dan padat yang menjadi acuan penilaian di sini."
+  }
+
+### Penalaran
+"format_output": {
+    "soal": "Tuliskan pertanyaan analisis atau penalaran kritis di sini.",
+    "paragraf_jawaban": "Tuliskan kunci jawaban berupa penjelasan analisis mendalam sebanyak satu paragraf utuh di sini."
+  }
+
+### Proyek
+"format_output": {
+    "judul": "Tuliskan nama atau judul proyek pembelajaran yang menarik di sini.",
+    "deskripsi_proyek": "Tuliskan deskripsi lengkap mengenai tujuan proyek, relevansi materi, dan hasil akhir yang diharapkan dari siswa di sini.",
+    "langkah_langkah": [
+      "Langkah pertama: Persiapan alat dan bahan yang dibutuhkan.",
+      "Langkah kedua: Tahap awal pengerjaan atau perancangan proyek.",
+      "Langkah ketiga: Tahap pelaksanaan eksperimen, pembuatan, atau pengamatan.",
+      "Langkah keempat: Tahap penyimpulan hasil proyek dan pelaporan."
+    ]
+  }
+
+
+
+
+
+
+

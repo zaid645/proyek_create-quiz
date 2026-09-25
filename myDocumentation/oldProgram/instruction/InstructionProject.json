@@ -1,0 +1,20 @@
+{
+  "tipe_soal": "Proyek",
+  "deskripsi_tugas": "Buatlah tepat 1 (satu) rencana proyek pembelajaran praktis baru yang menantang, edukatif, dan aplikatif bagi murid berdasarkan materi yang dirujuk.",
+  "instruksi_spesifik": [
+    "Proyek harus relevan dengan materi pembelajaran, realistis untuk dikerjakan murid, dan mengutamakan keselamatan serta penggunaan bahan-bahan yang mudah ditemukan.",
+    "Nilai dari 'judul' harus berupa nama proyek yang menarik, kreatif, singkat, dan mencerminkan esensi kegiatan pembelajaran.",
+    "Nilai dari 'deskripsi_proyek' berisi penjelasan singkat tentang latar belakang proyek, tujuan pembelajaran utama, serta produk atau hasil akhir yang diharapkan dari murid.",
+    "Nilai dari 'langkah_langkah' wajib berupa susunan rencana kerja terstruktur (array of strings) yang menjelaskan alur pengerjaan proyek secara sistematis, kronologis, dan mudah dipahami langkah demi langkah."
+  ],
+  "format_output": {
+    "judul": "Tuliskan nama atau judul proyek pembelajaran yang menarik di sini.",
+    "deskripsi_proyek": "Tuliskan deskripsi lengkap mengenai tujuan proyek, relevansi materi, dan hasil akhir yang diharapkan dari siswa di sini.",
+    "langkah_langkah": [
+      "Langkah pertama: Persiapan alat dan bahan yang dibutuhkan.",
+      "Langkah kedua: Tahap awal pengerjaan atau perancangan proyek.",
+      "Langkah ketiga: Tahap pelaksanaan eksperimen, pembuatan, atau pengamatan.",
+      "Langkah keempat: Tahap penyimpulan hasil proyek dan pelaporan."
+    ]
+  }
+}

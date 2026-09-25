@@ -1,0 +1,26 @@
+{
+  "tipe_soal": "Pilihan Ganda",
+  "deskripsi_tugas": "Buatlah tepat 1 (satu) soal pilihan ganda baru yang singkat, langsung pada inti pertanyaan (direct/to-the-point), dan memiliki satu jawaban benar yang mutlak berdasarkan materi yang dirujuk.",
+  "konfigurasi_dinamis": {
+    "jumlah_opsi": "{JUMLAH_OPSI}",
+    "susunan_id_opsi": "{DAFTAR_ID_OPSI}"
+  },
+  "instruksi_spesifik": [
+    "DILARANG menggunakan kalimat pembuka seperti 'Perhatikan ciri-ciri berikut!', 'Perhatikan pernyataan berikut!', atau narasi pengantar yang panjang.",
+    "Kalimat soal harus dibuat singkat, padat, dan langsung menanyakan inti materi (misal: 'Planet ketiga terdekat dari Matahari adalah...').",
+    "Wajib menghasilkan tepat {JUMLAH_OPSI} opsi jawaban.",
+    "Setiap opsi harus menggunakan pengidentifikasi (id) secara berurutan sesuai dengan aturan ini: {DAFTAR_ID_OPSI}.",
+    "Nilai dari 'id_opsi_benar' wajib merupakan salah satu karakter dari {DAFTAR_ID_OPSI} yang merujuk pada jawaban yang paling tepat.",
+    "Pengecoh (distraktor) dibuat relevan dengan topik, memiliki tingkat kesulitan yang seimbang, dan singkat."
+  ],
+  "format_output": {
+    "soal": "Tuliskan pertanyaan singkat di sini (contoh: Planet ketiga terdekat dari Matahari adalah...)",
+    "opsi": [
+      {
+        "id": "A",
+        "teks": "Teks opsi A"
+      }
+    ],
+    "id_opsi_benar": "A"
+  }
+}

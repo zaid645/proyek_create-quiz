@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Drawer daftar proyek — panel melayang dari kiri */
+@keyframes drawerMasuk {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+@keyframes fadeMasuk {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animasi-drawer { animation: drawerMasuk 0.18s ease-out; }
+.animasi-latar { animation: fadeMasuk 0.18s ease-out; }

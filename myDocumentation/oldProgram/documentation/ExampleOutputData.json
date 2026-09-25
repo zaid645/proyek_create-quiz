@@ -1,0 +1,62 @@
+{
+  "metadata": {
+    "judul_soal": "Ujian Akhir Semester Ganjil - IPA Kelas 6"
+  },
+  "daftar_soal": {
+    "pilihan_ganda": [
+      {
+        "id": "pg-1",
+        "soal": "Manakah dari gas berikut yang memiliki persentase volume terbesar di dalam atmosfer bumi?",
+        "opsi": [
+          {
+            "id": "A",
+            "teks": "Oksigen"
+          },
+          {
+            "id": "B",
+            "teks": "Nitrogen"
+          },
+          {
+            "id": "C",
+            "teks": "Karbon Dioksida"
+          },
+          {
+            "id": "D",
+            "teks": "Argon"
+          }
+        ],
+        "id_opsi_benar": "B"
+      }
+    ],
+    "uraian": [
+      {
+        "id": "ur-1",
+        "soal": "Jelaskan secara singkat apa fungsi dari pembuluh xilem pada jaringan tumbuhan!",
+        "jawaban_singkat": "Pembuluh xilem berfungsi untuk mengangkut air dan garam mineral dari dalam tanah (melalui akar) menuju ke daun untuk proses fotosintesis."
+      }
+    ],
+    "penalaran": [
+      {
+        "id": "nl-1",
+        "soal": "Mengapa daerah pegunungan cenderung memiliki suhu udara yang lebih dingin dibandingkan dengan daerah pesisir pantai? Hubungkan penjelasanmu dengan kerapatan molekul udara!",
+        "paragraf_jawaban": "Suhu di pegunungan lebih dingin karena letaknya yang lebih tinggi menyebabkan tekanan udara menurun. Penurunan tekanan ini membuat kerapatan molekul udara di pegunungan menjadi lebih renggang, sehingga kemampuan udara untuk menyerap dan menahan panas dari radiasi matahari menjadi jauh lebih rendah."
+      }
+    ],
+    "proyek": [
+      {
+        "id": "pr-1",
+        "judul": "Pembuatan Miniatur Siklus Air Menggunakan Barang Bekas",
+        "deskripsi_proyek": "Proyek praktis ini bertujuan untuk membantu siswa memahami proses evaporasi, kondensasi, dan presipitasi secara visual dengan merancang alat peraga sederhana dari material daur ulang.",
+        "langkah_langkah": [
+          "Siapkan sebuah botol plastik transparan ukuran besar (1,5 Liter), gunting, air hangat, mangkuk kecil, pewarna makanan biru, dan es batu.",
+          "Potong botol plastik menjadi dua bagian secara horizontal (bagian atas dan bagian bawah).",
+          "Isi bagian bawah botol dengan air hangat yang telah diberi beberapa tetes pewarna makanan biru.",
+          "Letakkan mangkuk kecil di tengah-tengah air tersebut (pastikan mangkuk tidak tenggelam atau terisi air biru langsung).",
+          "Letakkan potongan kepala botol secara terbalik di atas botol bagian bawah.",
+          "Letakkan beberapa butir es batu di atas bagian corong yang terbalik tersebut.",
+          "Amati terbentuknya uap air (evaporasi), embun (kondensasi), hingga tetesan air yang jatuh ke dalam mangkuk kecil (presipitasi)."
+        ]
+      }
+    ]
+  }
+}

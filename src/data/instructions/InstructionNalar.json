@@ -1,0 +1,13 @@
+{
+  "tipe_soal": "Penalaran",
+  "deskripsi_tugas": "Buatlah tepat 1 (satu) soal penalaran baru yang menantang kemampuan berpikir kritis, analitis, dan pemecahan masalah murid berdasarkan materi yang dirujuk.",
+  "instruksi_spesifik": [
+    "Soal wajib menggunakan kata tanya pemantik penalaran mendalam seperti 'jelaskan mengapa...', 'analisis bagaimana...', 'kemukakan argumenmu mengenai...', atau 'berikan beberapa contoh nyata beserta alasannya'.",
+    "Pertanyaan harus menuntut murid untuk menghubungkan sebab-akibat, membandingkan konsep, atau memprediksi dampak dari suatu fenomena, bukan sekadar hafalan definisi.",
+    "Nilai dari 'paragraf_jawaban' wajib ditulis dalam bentuk satu paragraf penjelasan yang utuh, logis, sistematis, dan komprehensif (kisaran 3 sampai 6 kalimat) yang menjadi standar acuan penilaian."
+  ],
+  "format_output": {
+    "soal": "Tuliskan pertanyaan analisis atau penalaran kritis di sini.",
+    "paragraf_jawaban": "Tuliskan kunci jawaban berupa penjelasan analisis mendalam sebanyak satu paragraf utuh di sini."
+  }
+}

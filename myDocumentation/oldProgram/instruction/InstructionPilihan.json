@@ -1,0 +1,24 @@
+{
+  "tipe_soal": "Pilihan Ganda",
+  "deskripsi_tugas": "Buatlah tepat 1 (satu) soal pilihan ganda baru yang kreatif, kontekstual, dan memiliki satu jawaban benar yang mutlak berdasarkan materi yang dirujuk.",
+  "konfigurasi_dinamis": {
+    "jumlah_opsi": "{JUMLAH_OPSI}",
+    "susunan_id_opsi": "{DAFTAR_ID_OPSI}"
+  },
+  "instruksi_spesifik": [
+    "Wajib menghasilkan tepat {JUMLAH_OPSI} opsi jawaban.",
+    "Setiap opsi harus menggunakan pengidentifikasi (id) secara berurutan sesuai dengan aturan ini: {DAFTAR_ID_OPSI}.",
+    "Nilai dari 'id_opsi_benar' wajib merupakan salah satu karakter dari {DAFTAR_ID_OPSI} yang merujuk pada jawaban yang paling tepat.",
+    "Pengecoh (distraktor) harus dibuat homogen, ilmiah, logis, dan memiliki panjang kalimat yang relatif setara dengan kunci jawaban agar tidak mudah ditebak secara instingtif."
+  ],
+  "format_output": {
+    "soal": "Tuliskan pertanyaan pilihan ganda di sini.",
+    "opsi": [
+      {
+        "id": "A",
+        "teks": "Teks opsi A"
+      }
+    ],
+    "id_opsi_benar": "A"
+  }
+}
