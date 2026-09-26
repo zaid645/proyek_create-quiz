@@ -7,6 +7,7 @@ import { bacaFileJSON, eksporJSON, petakanImpor } from '../../services/exportImp
 import { eksporDoc } from '../../services/exportDoc';
 import { validasiHasil } from '../../services/gemini';
 import { geserSatuLangkah, hitungUrutanBaru, type PosisiLepas } from '../../services/urutan';
+import { modeKartu, targetModeMassal, toggleMode, type ModeKartu } from '../../services/tampilanSoal';
 import { poinDefault } from '../../services/tipeSoal';
 import { QuestionCard, type KendaliSortir } from './QuestionCard';
 import { SoalEditorModal } from './SoalEditorModal';
@@ -43,6 +44,33 @@ export function SoalDashboard(props: {
   const dragIdRef = useRef<string | null>(null);
   const [targetJatuh, setTargetJatuh] = useState<{ id: string; posisi: PosisiLepas } | null>(null);
   const [menyimpanUrutan, setMenyimpanUrutan] = useState(false);
+  // Mode ringkas/detail HANYA di RAM (tidak disimpan ke DB).
+  // Default saat halaman dibuka = RINGKAS; soal baru yang dibuat selama sesi
+  // otomatis DETAIL. Pilihan manual user (klik tombol nomor) menang atas default.
+  // Waktu buka disimpan via useState (nilai konstan, bukan useRef) supaya boleh
+  // dibaca saat render (aturan react-hooks/refs melarang akses ref di render).
+  const [waktuBukaSesi] = useState(() => new Date().toISOString());
+  const [modeManual, setModeManual] = useState<Partial<Record<string, ModeKartu>>>({});
+
+  const ambilMode = (s: SoalRecord): ModeKartu =>
+    modeKartu(s.dibuat_pada, waktuBukaSesi, modeManual[s.id]);
+
+  const toggleRingkas = (s: SoalRecord): void => {
+    const hasil = toggleMode(ambilMode(s));
+    setModeManual((sebelum) => ({ ...sebelum, [s.id]: hasil }));
+  };
+
+  // Toggle massal di awal list: jika SEMUA tampil sedang ringkas → buka semua
+  // (detail); jika ADA SATU SAJA yang detail → ringkas semua. Operasi pada
+  // daftar TAMPIL (ikut tab aktif), tetap RAM-only.
+  const toggleSemua = (): void => {
+    const target = targetModeMassal(tampil.map(ambilMode));
+    setModeManual((sebelum) => {
+      const hasil = { ...sebelum };
+      for (const s of tampil) hasil[s.id] = target;
+      return hasil;
+    });
+  };
 
   const tampil = tab === 'all' ? soal : soal.filter((s) => s.tipe === tab);
 
@@ -143,6 +171,9 @@ export function SoalDashboard(props: {
         const data = validasiHasil(item.tipe, item.data);
         const rec = await tambahSoal(proyek.id, item.tipe, data, item.poin);
         if (item.isHidden) await ubahVisibilitas(rec.id, true);
+        // Impor massal sengaja tetap RINGKAS (manual override) supaya daftar
+        // panjang tetap ramping — pengecualian dari aturan "soal baru = detail".
+        setModeManual((sebelum) => ({ ...sebelum, [rec.id]: 'ringkas' as ModeKartu }));
       }
       toast('Sukses mengimpor bank soal!', 'success');
       onBerubah();
@@ -223,19 +254,45 @@ export function SoalDashboard(props: {
         </div>
       ) : (
         <div className="space-y-4">
+          {/* Baris aksi di awal list: toggle massal ringkas/buka semua.
+              Label mengikuti status: jika SEMUA ringkas → tawarkan "Buka",
+              jika ADA yang detail → tawarkan "Ringkas". */}
+          {tampil.length > 0 && (
+            <div className="flex items-center justify-end">
+              <button
+                type="button"
+                onClick={toggleSemua}
+                data-tombol-tampil-semua
+                title={tampil.every((s) => ambilMode(s) === 'ringkas') ? 'Buka detail semua soal yang tampil' : 'Ringkas semua soal yang tampil'}
+                aria-label={tampil.every((s) => ambilMode(s) === 'ringkas') ? 'Buka detail semua soal' : 'Ringkas semua soal'}
+                className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold px-3 py-1.5 rounded-xl text-xs"
+              >
+                {tampil.every((s) => ambilMode(s) === 'ringkas') ? '⤢ Buka semua' : '⤡ Ringkas semua'}
+              </button>
+            </div>
+          )}
           {tipeAktif === null ? (
             <p className="text-xs text-slate-400 text-center bg-white border border-slate-200 rounded-2xl p-3">
-              Pilih tab satu tipe soal (mis. Pilihan Ganda) untuk menyortir dengan drag &amp; drop.
+              Klik nomor soal untuk buka/tutup detail. Pilih tab satu tipe soal (mis. Pilihan Ganda) untuk menyortir dengan drag &amp; drop.
             </p>
           ) : sortirAktif ? (
             <p className="text-xs text-slate-400 text-center bg-white border border-slate-200 rounded-2xl p-3" aria-live="polite">
               {menyimpanUrutan
                 ? 'Menyimpan urutan…'
-                : 'Tarik ikon ⠿ di kiri nomor untuk menyortir — atau fokuskan ikon lalu Alt+↑ / Alt+↓.'}
+                : 'Klik nomor soal untuk buka/tutup detail. Tarik ikon ⠿ di kiri nomor untuk menyortir — atau fokuskan ikon lalu Alt+↑ / Alt+↓.'}
             </p>
           ) : null}
           {tampil.map((s, i) => (
-            <QuestionCard key={s.id} record={s} nomor={i + 1} onBerubah={onBerubah} onEdit={bukaEdit} sortir={kendaliKartu(s)} />
+            <QuestionCard
+              key={s.id}
+              record={s}
+              nomor={i + 1}
+              onBerubah={onBerubah}
+              onEdit={bukaEdit}
+              sortir={kendaliKartu(s)}
+              ringkas={ambilMode(s) === 'ringkas'}
+              onToggleRingkas={() => toggleRingkas(s)}
+            />
           ))}
           {tampil.length === 0 && (
             <p className="text-xs text-slate-400 text-center bg-white border border-slate-200 rounded-2xl p-6">Tidak ada soal pada tab ini.</p>

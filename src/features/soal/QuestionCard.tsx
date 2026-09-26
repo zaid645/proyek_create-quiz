@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import type { SoalPenalaran, SoalPilihanGanda, SoalProyek, SoalRecord, SoalUraian, TipeSoal } from '../../db/types';
 import { hapusSoal, ubahPoin, ubahVisibilitas } from '../../db/repositories/soalRepo';
 import type { PosisiLepas } from '../../services/urutan';
+import { barisPertama } from '../../services/tampilanSoal';
 import { TEKS_MULTIBARIS } from '../../services/teks';
 
 // Kendali sortir (drag & drop) yang diorkestrasi SoalDashboard.
@@ -33,12 +34,17 @@ export function QuestionCard({
   onBerubah,
   onEdit,
   sortir,
+  ringkas,
+  onToggleRingkas,
 }: {
   record: SoalRecord;
   nomor: number;
   onBerubah: () => void;
   onEdit: (record: SoalRecord) => void;
   sortir?: KendaliSortir;
+  // Mode ringkas/detail. Status HANYA di RAM milik SoalDashboard (tidak ke DB).
+  ringkas: boolean;
+  onToggleRingkas: () => void;
 }): React.JSX.Element {
   const data = JSON.parse(record.data_json) as Record<string, unknown>;
   const redup = record.is_hidden === 1;
@@ -85,7 +91,7 @@ export function QuestionCard({
         const r = e.currentTarget.getBoundingClientRect();
         s.onJatuhkan(e.clientY < r.top + r.height / 2 ? 'atas' : 'bawah');
       }}
-      className={`relative ${redup ? 'opacity-50 bg-slate-50' : 'bg-white'} ${s?.sedangDiseret ? 'opacity-40' : ''} p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4`}
+      className={`relative ${redup ? 'opacity-50 bg-slate-50' : 'bg-white'} ${s?.sedangDiseret ? 'opacity-40' : ''} ${ringkas ? 'px-4 py-2.5' : 'p-5'} rounded-2xl border border-slate-200 shadow-sm space-y-4`}
     >
       {s?.posisiLepas === 'atas' && (
         <span aria-hidden className="absolute -top-2 left-4 right-4 h-1 rounded-full bg-indigo-500" />
@@ -123,20 +129,38 @@ export function QuestionCard({
               ⠿
             </button>
           )}
-          <span className="shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold">{nomor}</span>
-          <span dir="auto" className={`${TEKS_MULTIBARIS} inline-block flex-1 min-w-0`}>{judul}</span>
+          {/* Tombol nomor = toggle ringkas/detail. Sengaja dipakai supaya tidak
+              menambah UI: klik/Enter untuk buka-tutup kartu. */}
+          <button
+            type="button"
+            onClick={onToggleRingkas}
+            title={ringkas ? 'Buka detail soal' : 'Ringkas soal (tutup detail)'}
+            aria-label={`${ringkas ? 'Buka detail' : 'Ringkas'} soal nomor ${nomor}`}
+            aria-expanded={!ringkas}
+            data-tombol-nomor={record.id}
+            className="shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold cursor-pointer hover:bg-indigo-100 hover:ring-2 hover:ring-indigo-200 transition"
+          >
+            {nomor}
+          </button>
+          {/* Mode ringkas: HANYA baris pertama soal (truncate). `barisPertama`
+              memotong eksplisit di `\n` pertama karena CSS truncate saja tidak
+              cukup untuk teks multibaris (baris lanjutan ikut tampil). */}
+          <span dir="auto" className={`${ringkas ? 'truncate whitespace-nowrap' : TEKS_MULTIBARIS} inline-block flex-1 min-w-0`} title={ringkas ? barisPertama(judul) : undefined}>{ringkas ? barisPertama(judul) : judul}</span>
         </div>
         <div className="flex items-center space-x-1 shrink-0">
-          <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 mr-1">
-            <label className="text-[10px] text-slate-500 font-bold mr-2 uppercase">Poin:</label>
-            <input
-              type="number"
-              defaultValue={record.poin}
-              key={record.id + record.poin}
-              onBlur={(e) => simpanPoin(Number(e.target.value) || 0)}
-              className="w-12 text-xs border border-slate-200 rounded p-1 text-center bg-white"
-            />
-          </div>
+          {/* Mode ringkas: cuma tombol hide/edit/hapus (tanpa input poin). */}
+          {!ringkas && (
+            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 mr-1">
+              <label className="text-[10px] text-slate-500 font-bold mr-2 uppercase">Poin:</label>
+              <input
+                type="number"
+                defaultValue={record.poin}
+                key={record.id + record.poin}
+                onBlur={(e) => simpanPoin(Number(e.target.value) || 0)}
+                className="w-12 text-xs border border-slate-200 rounded p-1 text-center bg-white"
+              />
+            </div>
+          )}
           <button onClick={toggle} title="Toggle visibilitas (hidden = tidak ikut ekspor .doc)" className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400">
             {redup ? '🙈' : '👁'}
           </button>
@@ -144,9 +168,11 @@ export function QuestionCard({
           <button onClick={hapus} title="Hapus soal" className="p-1.5 hover:bg-rose-50 hover:text-rose-600 rounded-lg text-slate-400">🗑</button>
         </div>
       </div>
-      <div className="text-xs space-y-3 pl-8">
-        <IsiKartu tipe={record.tipe} data={data} />
-      </div>
+      {!ringkas && (
+        <div className="text-xs space-y-3 pl-8">
+          <IsiKartu tipe={record.tipe} data={data} />
+        </div>
+      )}
       {s?.posisiLepas === 'bawah' && (
         <span aria-hidden className="absolute -bottom-2 left-4 right-4 h-1 rounded-full bg-indigo-500" />
       )}
