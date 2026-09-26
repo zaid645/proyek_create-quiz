@@ -1,23 +1,55 @@
 // src/features/soal/QuestionCard.tsx — kartu 1 soal + kontrol poin/visibility/edit/hapus.
+import { useRef } from 'react';
 import type { SoalPenalaran, SoalPilihanGanda, SoalProyek, SoalRecord, SoalUraian, TipeSoal } from '../../db/types';
 import { hapusSoal, ubahPoin, ubahVisibilitas } from '../../db/repositories/soalRepo';
+import type { PosisiLepas } from '../../services/urutan';
 import { TEKS_MULTIBARIS } from '../../services/teks';
+
+// Kendali sortir (drag & drop) yang diorkestrasi SoalDashboard.
+// `aktif` = sortir tersedia (tab berisi satu tipe, isi >= 2);
+// `adaSeret` = sebuah kartu SEDANG diseret (kartu lain jadi target jatuh);
+// `sedangDiseret` = kartu ini yang diseret;
+// `posisiLepas` = garis sisip yang tampil di kartu ini ('atas'/'bawah').
+export type KendaliSortir = {
+  aktif: boolean;
+  adaSeret: boolean;
+  sedangDiseret: boolean;
+  posisiLepas: PosisiLepas | null;
+  bisaNaik: boolean;
+  bisaTurun: boolean;
+  onMulaiSeret: () => void;
+  onSelesaiSeret: () => void;
+  onSeretDiAtas: (posisi: PosisiLepas) => void;
+  // Posisi dilewatkan eksplisit dari event drop (bukan dibaca dari state
+  // `targetJatuh`): update state hasil dragover terakhir bisa belum ter-flush
+  // saat drop menyala beruntun, sehingga baca-state di sini akan basi.
+  onJatuhkan: (posisi: PosisiLepas) => void;
+  onPindahKeyboard: (arah: 'naik' | 'turun') => void;
+};
 
 export function QuestionCard({
   record,
   nomor,
   onBerubah,
   onEdit,
+  sortir,
 }: {
   record: SoalRecord;
   nomor: number;
   onBerubah: () => void;
   onEdit: (record: SoalRecord) => void;
+  sortir?: KendaliSortir;
 }): React.JSX.Element {
   const data = JSON.parse(record.data_json) as Record<string, unknown>;
   const redup = record.is_hidden === 1;
 
   const judul = record.tipe === 'proyek' ? String((data as unknown as SoalProyek).judul) : String(data['soal'] ?? '');
+
+  const kartuRef = useRef<HTMLDivElement>(null);
+  const s = sortir;
+  // Kartu ini boleh menerima drop bila: sortir aktif, ADA seretan berjalan,
+  // dan yang diseret BUKAN dirinya sendiri (kartu sumber tidak jadi target).
+  const terimaJatuh = s !== undefined && s.aktif && s.adaSeret && !s.sedangDiseret;
 
   const simpanPoin = (nilai: number): void => {
     void ubahPoin(record.id, nilai).then(onBerubah);
@@ -31,13 +63,66 @@ export function QuestionCard({
   };
 
   return (
-    <div className={`${redup ? 'opacity-50 bg-slate-50' : 'bg-white'} p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4`}>
+    <div
+      ref={kartuRef}
+      data-kartu-soal={record.id}
+      onDragOver={(e) => {
+        if (!terimaJatuh || !s) return;
+        // preventDefault WAJIB agar event drop bisa menyala.
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        // Posisi sisip ditentukan dari separuh kartu yang di-hover — jadi user
+        // bisa menjatuhkan tepat sebelum ATAU sesudah soal target, termasuk
+        // paling awal dan paling akhir daftar.
+        const r = e.currentTarget.getBoundingClientRect();
+        s.onSeretDiAtas(e.clientY < r.top + r.height / 2 ? 'atas' : 'bawah');
+      }}
+      onDrop={(e) => {
+        if (!terimaJatuh || !s) return;
+        e.preventDefault();
+        // Hitung posisi dari event drop ini sendiri — jangan andalkan state
+        // `posisiLepas` dari dragover terakhir yang mungkin belum ter-render.
+        const r = e.currentTarget.getBoundingClientRect();
+        s.onJatuhkan(e.clientY < r.top + r.height / 2 ? 'atas' : 'bawah');
+      }}
+      className={`relative ${redup ? 'opacity-50 bg-slate-50' : 'bg-white'} ${s?.sedangDiseret ? 'opacity-40' : ''} p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4`}
+    >
+      {s?.posisiLepas === 'atas' && (
+        <span aria-hidden className="absolute -top-2 left-4 right-4 h-1 rounded-full bg-indigo-500" />
+      )}
       <div className="flex items-start justify-between gap-4">
         {/* Nomor dipisah ke kolom flex sendiri (bukan spasi di awal teks) supaya
             SEMUA baris lanjutan otomatis lurus di belakang teks, bukan mulai dari
             tepi kiri. Objek teks juga dibungkus agar bisa 'display: inline-block':
             tanpa itu, elemen blok tetap bisa terpotong ke tepi container. */}
-        <div className="flex-1 min-w-0 flex gap-2 text-sm font-bold text-slate-900 leading-relaxed">
+        <div className="flex-1 min-w-0 flex gap-1 items-start text-sm font-bold text-slate-900 leading-relaxed">
+          {s?.aktif === true && (
+            <button
+              type="button"
+              draggable
+              onDragStart={(e) => {
+                // Hanya handle yang draggable (bukan seluruh kartu) supaya teks
+                // soal tetap bisa di-block/di-copy dengan mouse seperti biasa.
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', record.id);
+                // Preview seret = seluruh kartu, bukan cuma handle-nya.
+                if (kartuRef.current) e.dataTransfer.setDragImage(kartuRef.current, 24, 24);
+                s.onMulaiSeret();
+              }}
+              onDragEnd={() => s.onSelesaiSeret()}
+              onKeyDown={(e) => {
+                // Jalur keyboard: fokuskan handle lalu Alt+↑ / Alt+↓.
+                if (!e.altKey) return;
+                if (e.key === 'ArrowUp') { e.preventDefault(); s.onPindahKeyboard('naik'); }
+                else if (e.key === 'ArrowDown') { e.preventDefault(); s.onPindahKeyboard('turun'); }
+              }}
+              title="Tarik untuk menyortir (atau fokus lalu Alt+↑ / Alt+↓)"
+              aria-label={`Pindahkan soal nomor ${nomor}`}
+              className="shrink-0 mt-0.5 px-0.5 cursor-grab active:cursor-grabbing text-slate-300 hover:text-indigo-500 rounded leading-none disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              ⠿
+            </button>
+          )}
           <span className="shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold">{nomor}</span>
           <span dir="auto" className={`${TEKS_MULTIBARIS} inline-block flex-1 min-w-0`}>{judul}</span>
         </div>
@@ -62,6 +147,9 @@ export function QuestionCard({
       <div className="text-xs space-y-3 pl-8">
         <IsiKartu tipe={record.tipe} data={data} />
       </div>
+      {s?.posisiLepas === 'bawah' && (
+        <span aria-hidden className="absolute -bottom-2 left-4 right-4 h-1 rounded-full bg-indigo-500" />
+      )}
     </div>
   );
 }

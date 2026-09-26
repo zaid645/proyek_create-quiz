@@ -1,13 +1,14 @@
 // src/features/soal/SoalDashboard.tsx — statistik + tab + impor/ekspor + daftar.
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Proyek, SoalRecord, StatistikSoal, TipeSoal } from '../../db/types';
-import { kosongkanSoal, tambahSoal, ubahVisibilitas } from '../../db/repositories/soalRepo';
+import { kosongkanSoal, simpanUrutanTipe, tambahSoal, ubahVisibilitas } from '../../db/repositories/soalRepo';
 import { ubahProyek } from '../../db/repositories/proyekRepo';
 import { bacaFileJSON, eksporJSON, petakanImpor } from '../../services/exportImport';
 import { eksporDoc } from '../../services/exportDoc';
 import { validasiHasil } from '../../services/gemini';
+import { geserSatuLangkah, hitungUrutanBaru, type PosisiLepas } from '../../services/urutan';
 import { poinDefault } from '../../services/tipeSoal';
-import { QuestionCard } from './QuestionCard';
+import { QuestionCard, type KendaliSortir } from './QuestionCard';
 import { SoalEditorModal } from './SoalEditorModal';
 import { useToast } from '../../shared/ui/Toast';
 import { ErrorModal } from '../../shared/ui/Modal';
@@ -35,8 +36,88 @@ export function SoalDashboard(props: {
   const [bukaEditor, setBukaEditor] = useState(false);
   const [editTarget, setEditTarget] = useState<SoalRecord | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
+  // State drag & drop sortir — HANYA hidup saat tab berisi satu tipe soal.
+  const [dragId, setDragId] = useState<string | null>(null);
+  // Cermin ref untuk id seretan: handler drop/keyboard React bisa memegang
+  // closure render lama (state `dragId` basi), sedangkan ref selalu mutakhir.
+  const dragIdRef = useRef<string | null>(null);
+  const [targetJatuh, setTargetJatuh] = useState<{ id: string; posisi: PosisiLepas } | null>(null);
+  const [menyimpanUrutan, setMenyimpanUrutan] = useState(false);
 
   const tampil = tab === 'all' ? soal : soal.filter((s) => s.tipe === tab);
+
+  // Sortir hanya tersedia di tab satu tipe dengan isi >= 2. Di tab "Semua"
+  // kartu-kartu bercampur tipe sehingga drag di sana akan menipu (item hanya
+  // bisa bertukar slot dengan tipe yang sama, bukan mendarat bebas).
+  const tipeAktif: TipeSoal | null = tab === 'all' ? null : tab;
+  const sortirAktif = tipeAktif !== null && tampil.length >= 2;
+  const idUrutTipe = tampil.map((s) => s.id);
+
+  const akhiriSeret = (): void => {
+    dragIdRef.current = null;
+    setDragId(null);
+    setTargetJatuh(null);
+  };
+
+  const simpanUrutanBaru = async (tipe: TipeSoal, urutBaru: string[] | null): Promise<void> => {
+    if (!urutBaru) return;
+    setMenyimpanUrutan(true);
+    try {
+      const berubah = await simpanUrutanTipe(proyek.id, tipe, urutBaru);
+      if (berubah > 0) onBerubah();
+    } catch (err) {
+      setGalat(err instanceof Error ? err.message : String(err));
+    } finally {
+      setMenyimpanUrutan(false);
+    }
+  };
+
+  const jatuhkan = async (idTarget: string, posisi: PosisiLepas): Promise<void> => {
+    // Ambil dulu SEBELUM akhiriSeret() mengosongkan ref.
+    const d = dragIdRef.current;
+    akhiriSeret();
+    if (!tipeAktif || !d) return;
+    await simpanUrutanBaru(tipeAktif, hitungUrutanBaru(idUrutTipe, d, idTarget, posisi));
+  };
+
+  const kendaliKartu = (r: SoalRecord): KendaliSortir | undefined => {
+    if (!sortirAktif || !tipeAktif) return undefined;
+    const idx = idUrutTipe.indexOf(r.id);
+    const tipe = tipeAktif;
+    return {
+      aktif: true,
+      adaSeret: dragId !== null,
+      sedangDiseret: dragId === r.id,
+      posisiLepas: targetJatuh?.id === r.id ? targetJatuh.posisi : null,
+      bisaNaik: idx > 0,
+      bisaTurun: idx >= 0 && idx < idUrutTipe.length - 1,
+      onMulaiSeret: () => {
+        // `onDragStart` React di handle; sisanya (drop di kartu lain) diurus
+        // kartu target. Satu-satunya yang tidak punya handler eksplisit adalah
+        // drop di LUAR daftar (mis. panel kiri) — untuk itu pasang sekali saja
+        // listener dragend global yang menutup state seret.
+        if (typeof document !== 'undefined') {
+          const tutup = (): void => {
+            document.removeEventListener('dragend', tutup);
+            akhiriSeret();
+          };
+          document.addEventListener('dragend', tutup);
+        }
+        dragIdRef.current = r.id;
+        setDragId(r.id);
+      },
+      onSelesaiSeret: akhiriSeret,
+      onSeretDiAtas: (posisi) => {
+        // Kartu yang diseret bukan target bagi dirinya sendiri.
+        // Baca dari ref (bukan state `dragId`) agar tidak basi bila handler
+        // ini dipanggil dari closure render yang lebih lama.
+        if (!dragIdRef.current || dragIdRef.current === r.id) { setTargetJatuh(null); return; }
+        setTargetJatuh({ id: r.id, posisi });
+      },
+      onJatuhkan: (posisi) => { void jatuhkan(r.id, posisi); },
+      onPindahKeyboard: (arah) => { void simpanUrutanBaru(tipe, geserSatuLangkah(idUrutTipe, r.id, arah)); },
+    };
+  };
 
   const bukaTambah = (): void => {
     setEditTarget(null);
@@ -142,8 +223,19 @@ export function SoalDashboard(props: {
         </div>
       ) : (
         <div className="space-y-4">
+          {tipeAktif === null ? (
+            <p className="text-xs text-slate-400 text-center bg-white border border-slate-200 rounded-2xl p-3">
+              Pilih tab satu tipe soal (mis. Pilihan Ganda) untuk menyortir dengan drag &amp; drop.
+            </p>
+          ) : sortirAktif ? (
+            <p className="text-xs text-slate-400 text-center bg-white border border-slate-200 rounded-2xl p-3" aria-live="polite">
+              {menyimpanUrutan
+                ? 'Menyimpan urutan…'
+                : 'Tarik ikon ⠿ di kiri nomor untuk menyortir — atau fokuskan ikon lalu Alt+↑ / Alt+↓.'}
+            </p>
+          ) : null}
           {tampil.map((s, i) => (
-            <QuestionCard key={s.id} record={s} nomor={i + 1} onBerubah={onBerubah} onEdit={bukaEdit} />
+            <QuestionCard key={s.id} record={s} nomor={i + 1} onBerubah={onBerubah} onEdit={bukaEdit} sortir={kendaliKartu(s)} />
           ))}
           {tampil.length === 0 && (
             <p className="text-xs text-slate-400 text-center bg-white border border-slate-200 rounded-2xl p-6">Tidak ada soal pada tab ini.</p>

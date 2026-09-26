@@ -1,7 +1,8 @@
 // src/db/repositories/soalRepo.ts
-import { barisHasil, query } from '../client';
+import { barisHasil, query, withTransaction, type TxQueryFn } from '../client';
 import type { DataSoal, SoalDenganData, SoalRecord, StatistikSoal, TipeSoal } from '../types';
 import { buatId } from '../../services/id';
+import { hitungUrutanTersimpan, type BarisUrutan } from '../../services/urutan';
 
 function sekarang(): string {
   return new Date().toISOString();
@@ -107,4 +108,58 @@ export async function hapusSoal(id: string): Promise<void> {
 export async function kosongkanSoal(idProyek: string, tipe?: TipeSoal): Promise<void> {
   if (tipe) await query(`DELETE FROM soal WHERE id_proyek = ? AND tipe = ?`, [idProyek, tipe]);
   else await query(`DELETE FROM soal WHERE id_proyek = ?`, [idProyek]);
+}
+
+// ── Sortir (drag & drop) ─────────────────────────────────────────────────────
+// Kolom `urutan` sudah ada di skema sejak awal (001_init_schema.sql) dan selama
+// ini hanya ditulis sekali saat insert; fungsi ini yang pertama kali MENGUBAH-nya.
+//
+// `idUrut` = id soal milik `tipe` dalam urutan tampil yang diinginkan user.
+// Satu transaksi karena sortir menyentuh banyak baris sekaligus: kalau gagal di
+// tengah (mis. tab ditutup), semua UPDATE batal dan tidak ada nomor duplikat
+// yang tertinggal. Sengaja TIDAK menyentuh `diubah_pada` karena sortir bukan
+// perubahan isi — hanya posisi tampil.
+//
+// Mengembalikan jumlah baris yang benar-benar berubah (0 = sudah pas).
+export async function simpanUrutanTipe(
+  idProyek: string,
+  tipe: TipeSoal,
+  idUrut: readonly string[],
+): Promise<number> {
+  return withTransaction(async (tx: TxQueryFn) => {
+    // Urutan baca = persis yang dipakai listSoal(): `urutan ASC` (di SQLite
+    // NULL menempati paling awal), lalu `dibuat_pada ASC` sebagai penyeimbang.
+    // CATATAN: hasil `tx()` berbentuk [{columns, rows}] (bukan baris jadi),
+    // jadi petakan manual — jangan pakai `barisHasil` yang di luar transaksi.
+    const mentah = await tx<{ columns: string[]; rows: unknown[][] }>(
+      `SELECT id, tipe, urutan, dibuat_pada FROM soal WHERE id_proyek = ?
+       ORDER BY (urutan IS NULL) DESC, urutan ASC, dibuat_pada ASC`,
+      [idProyek],
+    );
+    const tabel = mentah[0];
+    const kolom = tabel?.columns ?? [];
+    const iId = kolom.indexOf('id');
+    const iTipe = kolom.indexOf('tipe');
+    const iUrutan = kolom.indexOf('urutan');
+    const daftar = tabel?.rows ?? [];
+    const baris: BarisUrutan[] = daftar.map((r) => {
+      const id = iId >= 0 ? r[iId] : undefined;
+      const tp = iTipe >= 0 ? r[iTipe] : undefined;
+      const ur = iUrutan >= 0 ? r[iUrutan] : undefined;
+      return {
+        id: String(id),
+        tipe: String(tp),
+        urutan: ur === null || ur === undefined ? null : Number(ur),
+      };
+    });
+    const peta = hitungUrutanTersimpan(baris, tipe, idUrut);
+    let berubah = 0;
+    for (const b of baris) {
+      const nomor = peta.get(b.id);
+      if (nomor === undefined || nomor === b.urutan) continue;
+      await tx(`UPDATE soal SET urutan = ? WHERE id = ?`, [nomor, b.id]);
+      berubah += 1;
+    }
+    return berubah;
+  });
 }
