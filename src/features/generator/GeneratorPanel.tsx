@@ -13,7 +13,6 @@ import {
   TIPE_SINGKAT,
   batasiTarget,
   kunciTarget,
-  targetSoal,
 } from '../../services/tipeSoal';
 import { useToast } from '../../shared/ui/Toast';
 import { ErrorModal, LoadingOverlay } from '../../shared/ui/Modal';
@@ -108,7 +107,7 @@ export function GeneratorPanel(props: {
             <div>
               <p className="text-xs font-bold text-amber-900">Loop Sampai Target Soal</p>
               <p className="text-[10px] text-amber-700/80 leading-snug">
-                Target jumlah per tipe tersimpan di proyek ini. Bila aktif, generator akan memanggil AI berulang (1 soal per panggilan) sampai target tipe terpilih tercapai.
+                Target di bawah berlaku untuk tipe soal yang sedang dipilih di atas. Bila aktif, generator akan memanggil AI berulang (1 soal per panggilan) sampai target tipe terpilih tercapai.
               </p>
             </div>
             <button
@@ -124,23 +123,21 @@ export function GeneratorPanel(props: {
               />
             </button>
           </div>
-          <div className="grid grid-cols-4 gap-2 text-[11px]">
-            {DAFTAR_TIPE.map((t) => (
-              <label key={t} className="font-semibold text-amber-900">
-                {TIPE_SINGKAT[t]}
-                <input
-                  type="number"
-                  min={0}
-                  max={MAKS_TARGET_SOAL}
-                  value={targetSoal(proyek, t)}
-                  onChange={(e) => ubahTarget(t, Number(e.target.value))}
-                  className="w-full mt-1 border border-amber-200 rounded-lg px-1.5 py-1.5 text-center text-xs bg-white"
-                />
-                <span className="block text-center font-normal text-amber-700/80 mt-0.5">
-                  {gen.jumlahPerTipe(t)}/{targetSoal(proyek, t)}
-                </span>
-              </label>
-            ))}
+          <div>
+            <label className="block text-[11px] font-semibold text-amber-900 mb-1">
+              Target {TIPE_SINGKAT[gen.tipe]} — {targetAktif} soal
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={MAKS_TARGET_SOAL}
+              value={targetAktif}
+              onChange={(e) => ubahTarget(gen.tipe, Number(e.target.value))}
+              className="w-full border border-amber-200 rounded-lg px-2 py-1.5 text-center text-xs bg-white"
+            />
+            <span className="block text-center font-normal text-amber-700/80 mt-0.5">
+              {gen.jumlahPerTipe(gen.tipe)}/{targetAktif} sudah ada
+            </span>
           </div>
         </div>
 

@@ -6,7 +6,7 @@ import InstructionPilihan from '../data/instructions/InstructionPilihan.json';
 import InstructionUraian from '../data/instructions/InstructionUraian.json';
 import InstructionNalar from '../data/instructions/InstructionNalar.json';
 import InstructionProject from '../data/instructions/InstructionProject.json';
-import { GAYA_TEKS_DEFAULT, cariBahasa, cariGayaTeks } from './bahasa';
+import { GAYA_TEKS_DEFAULT, ATURAN_AKSARA, cariBahasa, cariGayaTeks } from './bahasa';
 
 const SYSTEM_PROMPT =
   'Anda adalah program generator soal otomatis terstruktur dalam format JSON mentah. ' +
@@ -39,10 +39,13 @@ function instruksiMainDenganBahasa(namaBahasa: string, gayaTeks: string): Record
   }
   // Aturan gaya teks disisipkan ke dalam daftar instruksi utama supaya punya
   // bobot yang sama dengan aturan lain, bukan sekadar catatan di akhir.
+  // ATURAN_AKSARA ikut disisipkan di sini (bukan hanya di gaya 'struktur')
+  // karena kekeliruan penempatan aksara asing —尤其是 ayat Arab yang menempel
+  // di tengah kalimat Indonesia — adalah kesalahan tipografi, bukan gaya bahasa.
   const aturanGaya = cariGayaTeks(gayaTeks).aturanPrompt;
   const utama = salin['instruksi_utama'];
-  if (Array.isArray(utama)) utama.splice(6, 0, aturanGaya);
-  else salin['instruksi_utama'] = [aturanGaya];
+  if (Array.isArray(utama)) utama.splice(6, 0, aturanGaya, ATURAN_AKSARA);
+  else salin['instruksi_utama'] = [aturanGaya, ATURAN_AKSARA];
   return salin;
 }
 

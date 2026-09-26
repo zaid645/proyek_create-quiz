@@ -89,7 +89,7 @@ export function SoalDashboard(props: {
     <div className="space-y-6">
       <div className="bg-white px-6 py-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-bold text-slate-900 leading-tight">{proyek.nama_proyek}</h3>
+          <h3 title={proyek.nama_proyek} className="text-lg font-bold text-slate-900 leading-tight max-w-[26rem] truncate">{proyek.nama_proyek}</h3>
           <p className="text-xs text-slate-400 font-medium">Status Bank Soal: <span className="font-bold text-indigo-600">{stats.total}</span> Soal terkumpul</p>
         </div>
         <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl flex-wrap">

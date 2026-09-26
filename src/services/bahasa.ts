@@ -51,6 +51,14 @@ export const DAFTAR_GAYA_TEKS: OpsiGayaTeks[] = [
   },
 ];
 
+// Aturan aksara — berlaku di SEMUA gaya teks, bukan hanya gaya 'struktur'.
+// Alasannya: ini soal ketepatan tipografi (apa yang terjadi saat dua sistem
+// tulisan bercampur), bukan soal panjang atau pendek. Aturan gaya 'ringkas'
+// tetap governs keseluruhan soal; aturan ini hanya memisahkan kutipan aksara
+// asing ke barisnya sendiri.
+export const ATURAN_AKSARA =
+  'SCRIPT AND TYPESETTING RULE: If the question content contains a passage written in a script that DIFFERS from the main language of the question — for example an Arabic quotation of the Qur\'an inside an Indonesian question, or a Chinese or Latin phrase quoted inside an Arabic question — you MUST place that entire passage on its OWN line, separated from the surrounding sentence. Never splice a foreign-script passage into the middle of a sentence written in the main language, and never mix two scripts inside a single line unless the foreign fragment is a single word or a number. CRITICAL FORMAT DETAIL: the foreign-script line must NOT begin with any leading spaces, tabs, bullet characters, or padding whitespace. Start that line directly with the first character of the quoted passage. The display layer applies indentation automatically, so any manual padding you add will result in a visibly broken double-indent. When quoting, preserve the original script, harakat (diacritics), and Arabic-Indic digits exactly as they appear in the source material — do not transliterate, romanize, or translate them.';
+
 export const GAYA_TEKS_DEFAULT = 'ringkas';
 
 export function cariGayaTeks(nilai: string | null | undefined): OpsiGayaTeks {

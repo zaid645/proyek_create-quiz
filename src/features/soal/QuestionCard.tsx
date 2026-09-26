@@ -1,7 +1,7 @@
 // src/features/soal/QuestionCard.tsx — kartu 1 soal + kontrol poin/visibility/edit/hapus.
 import type { SoalPenalaran, SoalPilihanGanda, SoalProyek, SoalRecord, SoalUraian, TipeSoal } from '../../db/types';
 import { hapusSoal, ubahPoin, ubahVisibilitas } from '../../db/repositories/soalRepo';
-import { PROPS_TEKS, TEKS_MULTIBARIS } from '../../services/teks';
+import { TEKS_MULTIBARIS } from '../../services/teks';
 
 export function QuestionCard({
   record,
@@ -33,9 +33,13 @@ export function QuestionCard({
   return (
     <div className={`${redup ? 'opacity-50 bg-slate-50' : 'bg-white'} p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4`}>
       <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 text-sm font-bold text-slate-900 leading-relaxed">
-          <span className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold mr-2">{nomor}</span>
-          <span {...PROPS_TEKS}>{judul}</span>
+        {/* Nomor dipisah ke kolom flex sendiri (bukan spasi di awal teks) supaya
+            SEMUA baris lanjutan otomatis lurus di belakang teks, bukan mulai dari
+            tepi kiri. Objek teks juga dibungkus agar bisa 'display: inline-block':
+            tanpa itu, elemen blok tetap bisa terpotong ke tepi container. */}
+        <div className="flex-1 min-w-0 flex gap-2 text-sm font-bold text-slate-900 leading-relaxed">
+          <span className="shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold">{nomor}</span>
+          <span dir="auto" className={`${TEKS_MULTIBARIS} inline-block flex-1 min-w-0`}>{judul}</span>
         </div>
         <div className="flex items-center space-x-1 shrink-0">
           <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 mr-1">
