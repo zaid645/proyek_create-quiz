@@ -22,3 +22,10 @@ body {
 }
 .animasi-drawer { animation: drawerMasuk 0.18s ease-out; }
 .animasi-latar { animation: fadeMasuk 0.18s ease-out; }
+
+/* Panel merah melayang peringatan API Key — jatuh dari atas */
+@keyframes bannerJatuh {
+  from { opacity: 0; transform: translate(-50%, -16px) scale(0.98); }
+  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+.animasi-banner { animation: bannerJatuh 0.28s ease-out; }

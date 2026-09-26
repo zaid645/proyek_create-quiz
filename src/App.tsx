@@ -11,6 +11,8 @@ import { GeneratorPanel } from './features/generator/GeneratorPanel';
 import { useGenerator } from './features/generator/useGenerator';
 import { SoalDashboard } from './features/soal/SoalDashboard';
 import { AiConfigModal } from './features/pengaturan/AiConfigModal';
+import { ApiKeyBanner } from './features/pengaturan/ApiKeyBanner';
+import { useApiKeyKosong } from './features/pengaturan/useApiKeyStatus';
 import { ToastProvider, useToast } from './shared/ui/Toast';
 import { ErrorModal } from './shared/ui/Modal';
 
@@ -28,6 +30,12 @@ function Shell(): React.JSX.Element {
   const [bukaProyek, setBukaProyek] = useState(false);
   const [galatDb, setGalatDb] = useState<string | null>(null);
   const [siap, setSiap] = useState(false);
+  // Panel merah melayang muncul selama API Key kosong.
+  const apiKeyKosong = useApiKeyKosong();
+  // Disembunyikan sementara (per sesi klik ✕), muncul lagi saat modal
+  // konfigurasi ditutup — supaya user tetap diingatkan sampai key terisi.
+  const [bannerDisembunyikan, setBannerDisembunyikan] = useState(false);
+  const tampilBanner = siap && apiKeyKosong && !bannerDisembunyikan && !bukaConfig;
 
   const muatProyek = useCallback(async () => {
     try {
@@ -190,8 +198,24 @@ function Shell(): React.JSX.Element {
           void muatProyek();
         }}
       />
-      {bukaConfig && <AiConfigModal onTutup={() => setBukaConfig(false)} />}
+      {bukaConfig && (
+        <AiConfigModal
+          onTutup={() => {
+            setBukaConfig(false);
+            // Cek ulang: jika key masih kosong, tampilkan lagi bannernya.
+            setBannerDisembunyikan(false);
+          }}
+        />
+      )}
       {galatDb && <ErrorModal pesan={galatDb} onTutup={() => setGalatDb(null)} />}
+
+      {/* Panel merah melayang: hanya saat API Key kosong. */}
+      {tampilBanner && (
+        <ApiKeyBanner
+          onPasang={() => setBukaConfig(true)}
+          onTutupSementara={() => setBannerDisembunyikan(true)}
+        />
+      )}
     </div>
   );
 }
