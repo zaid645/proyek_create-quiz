@@ -13,7 +13,8 @@ import { SoalDashboard } from './features/soal/SoalDashboard';
 import { AiConfigModal } from './features/pengaturan/AiConfigModal';
 import { ApiKeyBanner } from './features/pengaturan/ApiKeyBanner';
 import { useApiKeyKosong } from './features/pengaturan/useApiKeyStatus';
-import { ToastProvider, useToast } from './shared/ui/Toast';
+import { ToastProvider } from './shared/ui/Toast';
+import { useToast } from './shared/ui/useToast';
 import { ErrorModal } from './shared/ui/Modal';
 
 const STATS_KOSONG: StatistikSoal = { total: 0, pilihan_ganda: 0, uraian: 0, penalaran: 0, proyek: 0 };
@@ -75,10 +76,14 @@ function Shell(): React.JSX.Element {
   // tombol di panel memakai alur + target loop yang sama.
   const gen = useGenerator({ proyek, daftarFile, soalSemua: soal, onSoalBerubah: segarkanIsi });
 
+  // Inisialisasi sekali saat mount: sinkronisasi state dari DB lokal (OPFS).
+  // Ini pola inisialisasi yang sah — bukan cascading render reaktif.
+  /* eslint-disable react-hooks/set-state-in-effect -- inisialisasi mount dari DB lokal */
   useEffect(() => {
     void muatProyek();
   }, [muatProyek]);
 
+  // Muat isi tiap ganti proyek aktif; reset saat tidak ada proyek.
   useEffect(() => {
     if (aktifId) void muatIsi(aktifId);
     else {
@@ -88,6 +93,7 @@ function Shell(): React.JSX.Element {
       setDaftarFile([]);
     }
   }, [aktifId, muatIsi]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => onPerubahanData(() => {
     void muatProyek();

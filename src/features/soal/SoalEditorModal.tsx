@@ -3,7 +3,7 @@ import { useState } from 'react';
 import type { DataSoal, SoalPilihanGanda, SoalProyek, SoalRecord, TipeSoal } from '../../db/types';
 import { tambahSoal, ubahIsiSoal } from '../../db/repositories/soalRepo';
 import { Modal } from '../../shared/ui/Modal';
-import { useToast } from '../../shared/ui/Toast';
+import { useToast } from '../../shared/ui/useToast';
 
 const HURUF = ['A', 'B', 'C', 'D', 'E'];
 

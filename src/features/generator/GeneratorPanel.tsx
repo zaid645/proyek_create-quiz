@@ -14,7 +14,8 @@ import {
   batasiTarget,
   kunciTarget,
 } from '../../services/tipeSoal';
-import { useToast } from '../../shared/ui/Toast';
+import { BATCH_GENERATOR } from '../../config/generator';
+import { useToast } from '../../shared/ui/useToast';
 import { ErrorModal, LoadingOverlay } from '../../shared/ui/Modal';
 import type { HasilGenerator } from './useGenerator';
 
@@ -107,7 +108,7 @@ export function GeneratorPanel(props: {
             <div>
               <p className="text-xs font-bold text-amber-900">Loop Sampai Target Soal</p>
               <p className="text-[10px] text-amber-700/80 leading-snug">
-                Target di bawah berlaku untuk tipe soal yang sedang dipilih di atas. Bila aktif, generator akan memanggil AI berulang (1 soal per panggilan) sampai target tipe terpilih tercapai.
+                Target di bawah berlaku untuk tipe soal yang sedang dipilih di atas. Bila aktif, generator akan memanggil AI berulang per batch (maks {BATCH_GENERATOR[gen.tipe].maksPerPanggilan} soal per panggilan) sampai target tipe terpilih tercapai. Soal sebelumnya dikirim sebagai referensi anti-duplikat.
               </p>
             </div>
             <button
@@ -225,7 +226,7 @@ export function GeneratorPanel(props: {
           {gen.loopAktif && (
             <p className="text-[10px] text-amber-800 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 leading-snug">
               {targetAktif > 0
-                ? `Loop aktif — ${gen.jumlahPerTipe(gen.tipe)} dari ${targetAktif} soal ${TIPE_LABEL[gen.tipe]} sudah ada${gen.sisaTarget > 0 ? `, sisa ${gen.sisaTarget} soal.` : ' (target tercapai).'}`
+                ? `Loop aktif (batch ${BATCH_GENERATOR[gen.tipe].maksPerPanggilan}/panggilan) — ${gen.jumlahPerTipe(gen.tipe)} dari ${targetAktif} soal ${TIPE_LABEL[gen.tipe]} sudah ada${gen.sisaTarget > 0 ? `, sisa ${gen.sisaTarget} soal.` : ' (target tercapai).'}`
                 : `Target ${TIPE_LABEL[gen.tipe]} masih 0, jadi loop berhenti di 1 soal per klik. Isi target di atas untuk mengaktifkan loop.`}
             </p>
           )}

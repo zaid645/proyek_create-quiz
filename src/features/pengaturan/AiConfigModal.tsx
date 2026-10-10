@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { DAFTAR_MODEL, GET_API_KEY_URL } from '../../config/models';
 import { bacaApiKey, bacaModelId, simpanApiKey } from '../../db/repositories/pengaturanRepo';
 import { Modal } from '../../shared/ui/Modal';
-import { useToast } from '../../shared/ui/Toast';
+import { useToast } from '../../shared/ui/useToast';
 
 export function AiConfigModal({ onTutup }: { onTutup: () => void }): React.JSX.Element {
   const toast = useToast();

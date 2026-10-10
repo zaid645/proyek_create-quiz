@@ -6,7 +6,7 @@ import { useState } from 'react';
 import type { Proyek } from '../../db/types';
 import { buatProyek, hapusProyek } from '../../db/repositories/proyekRepo';
 import { Modal, ConfirmModal } from '../../shared/ui/Modal';
-import { useToast } from '../../shared/ui/Toast';
+import { useToast } from '../../shared/ui/useToast';
 import { BAHASA_DEFAULT, DAFTAR_BAHASA, DAFTAR_GAYA_TEKS, GAYA_TEKS_DEFAULT, cariBahasa } from '../../services/bahasa';
 
 export function ProyekSidebar({

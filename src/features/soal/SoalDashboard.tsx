@@ -11,7 +11,7 @@ import { modeKartu, targetModeMassal, toggleMode, type ModeKartu } from '../../s
 import { poinDefault } from '../../services/tipeSoal';
 import { QuestionCard, type KendaliSortir } from './QuestionCard';
 import { SoalEditorModal } from './SoalEditorModal';
-import { useToast } from '../../shared/ui/Toast';
+import { useToast } from '../../shared/ui/useToast';
 import { ErrorModal } from '../../shared/ui/Modal';
 
 export type TabSoal = 'all' | TipeSoal;

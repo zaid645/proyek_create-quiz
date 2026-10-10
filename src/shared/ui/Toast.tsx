@@ -1,18 +1,11 @@
-// src/shared/ui/Toast.tsx
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
-
-type TipeToast = 'success' | 'error' | 'info';
+// src/shared/ui/Toast.tsx — Provider + tampilan toast (hanya komponen).
+import { useCallback, useState, type ReactNode } from 'react';
+import { ToastContext, type TipeToast } from './toastContext';
 
 interface ToastState {
   id: number;
   pesan: string;
   tipe: TipeToast;
-}
-
-const ToastContext = createContext<(pesan: string, tipe?: TipeToast) => void>(() => undefined);
-
-export function useToast(): (pesan: string, tipe?: TipeToast) => void {
-  return useContext(ToastContext);
 }
 
 export function ToastProvider({ children }: { children: ReactNode }): React.JSX.Element {

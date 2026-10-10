@@ -23,19 +23,36 @@ export interface KonteksGenerate {
   jumlahOpsiPG: number;
   soalEksisting: Array<Record<string, unknown>>;
   materiTeks: string;
+  /** Jumlah soal diminta dalam SEKALI panggilan API (batch). Default: 1. */
+  jumlahMinta?: number;
   /** Kode bahasa proyek (lihat services/bahasa.ts). Default: Bahasa Indonesia. */
   bahasa?: string;
   /** Kode gaya teks proyek. Default: 'ringkas'. */
   gayaTeks?: string;
 }
 
+/** Samakan jumlah minta: minimal 1, bilangan bulat. */
+export function normalisasiJumlahMinta(v: unknown): number {
+  const n = typeof v === 'number' ? v : 1;
+  if (!Number.isFinite(n)) return 1;
+  return Math.max(1, Math.floor(n));
+}
+
 // Salin InstructionMain lalu ganti placeholder {BAHASA} dengan nama bahasa nyata.
 // Deep copy dipakai supaya JSON module yang di-import tidak ikut termodifikasi
 // (kalau termodifikasi, prompt berikutnya akan memakai bahasa proyek sebelumnya).
-function instruksiMainDenganBahasa(namaBahasa: string, gayaTeks: string): Record<string, unknown> {
+function instruksiMainDenganBahasa(namaBahasa: string, gayaTeks: string, jumlah: number): Record<string, unknown> {
   const salin = JSON.parse(JSON.stringify(InstructionMain)) as Record<string, unknown>;
   if (typeof salin['bahasa'] === 'string') {
     salin['bahasa'] = (salin['bahasa'] as string).replaceAll('{BAHASA}', namaBahasa);
+  }
+  // Samakan "tepat 1 (satu) soal ... setiap permintaan" dengan ukuran batch.
+  const daftarUtama = salin['instruksi_utama'];
+  if (Array.isArray(daftarUtama) && jumlah > 1) {
+    daftarUtama[0] =
+      `Hasilkan tepat ${jumlah} soal baru yang SALING BERBEDA untuk setiap permintaan ` +
+      `berdasarkan spesifikasi tipe soal yang dikirimkan pada 'QuestionInstruction'. ` +
+      `Output wajib berupa objek JSON dengan properti 'daftar_soal' berisi array tepat ${jumlah} soal.`;
   }
   // Aturan gaya teks disisipkan ke dalam daftar instruksi utama supaya punya
   // bobot yang sama dengan aturan lain, bukan sekadar catatan di akhir.
@@ -50,6 +67,7 @@ function instruksiMainDenganBahasa(namaBahasa: string, gayaTeks: string): Record
 }
 
 export function rakitPrompt(ctx: KonteksGenerate): Record<string, unknown> {
+  const jumlah = normalisasiJumlahMinta(ctx.jumlahMinta);
   const mentah = {
     pilihan_ganda: InstructionPilihan,
     uraian: InstructionUraian,
@@ -57,6 +75,32 @@ export function rakitPrompt(ctx: KonteksGenerate): Record<string, unknown> {
     proyek: InstructionProject,
   }[ctx.tipe] as Record<string, unknown>;
   const instruksi: Record<string, unknown> = JSON.parse(JSON.stringify(mentah));
+
+  // Samakan template "tepat 1 (satu) soal" menjadi dinamis agar AI tahu
+  // berapa soal yang diminta per panggilan (batch). Format output N>1
+  // diubah menjadi array berisi N objek mengikuti skema semula.
+  const labelJumlah = jumlah > 1 ? `tepat ${jumlah} soal baru yang berbeda satu sama lain` : 'tepat 1 (satu) soal baru';
+  if (typeof instruksi['deskripsi_tugas'] === 'string') {
+    instruksi['deskripsi_tugas'] = (instruksi['deskripsi_tugas'] as string).replace(
+      /tepat 1 \(satu\) soal [a-z]+ baru/,
+      labelJumlah,
+    );
+  }
+  if (jumlah > 1) {
+    instruksi['jumlah_diminta'] = jumlah;
+    instruksi['format_output'] = {
+      daftar_soal: Array.from(
+        { length: jumlah },
+        () => instruksi['format_output'] as Record<string, unknown>,
+      ),
+    };
+    const spesifik = instruksi['instruksi_spesifik'];
+    if (Array.isArray(spesifik)) {
+      spesifik.unshift(
+        `Wajib menghasilkan tepat ${jumlah} soal yang SALING BERBEDA (tidak boleh ada duplikat atau parafrasa antar soal dalam batch ini) dan semuanya berbeda dari 'ExistedQuestion'.`,
+      );
+    }
+  }
 
   if (ctx.tipe === 'pilihan_ganda') {
     const n = Math.min(5, Math.max(2, ctx.jumlahOpsiPG));
@@ -73,6 +117,7 @@ export function rakitPrompt(ctx: KonteksGenerate): Record<string, unknown> {
     InstructionMain: instruksiMainDenganBahasa(
       cariBahasa(ctx.bahasa).namaPrompt,
       ctx.gayaTeks ?? GAYA_TEKS_DEFAULT,
+      jumlah,
     ),
     JudulSoalProyek: ctx.judul || 'Ujian Baru',
     DeskripsiSoal: ctx.deskripsi,
@@ -166,19 +211,65 @@ export function validasiHasil(tipe: TipeSoal, mentah: unknown): DataSoal {
 }
 
 export async function generateSoal(apiKey: string, model: string, ctx: KonteksGenerate, onRetry?: (detik: number) => void): Promise<DataSoal> {
+  const daftar = await generateSoalBatch(apiKey, model, { ...ctx, jumlahMinta: 1 }, onRetry);
+  if (daftar.length === 0) throw new Error('Respon kosong dari API Gemini.');
+  return daftar[0]!;
+}
+
+/**
+ * Minta N soal sekaligus dalam SATU panggilan API (batch).
+ * Toleran parsial: entri yang gagal skema dibuang, yang valid dikembalikan.
+ * Kompatibel mundur: AI lama yang tetap mengembalikan 1 objek (bukan array)
+ * tetap diterima bila jumlahMinta = 1.
+ */
+export async function generateSoalBatch(
+  apiKey: string,
+  model: string,
+  ctx: KonteksGenerate,
+  onRetry?: (detik: number) => void,
+): Promise<DataSoal[]> {
   if (!apiKey) throw new Error('API Key belum dipasang. Buka Konfigurasi AI terlebih dahulu.');
+  const jumlah = normalisasiJumlahMinta(ctx.jumlahMinta);
   const payload = {
-    contents: [{ parts: [{ text: JSON.stringify(rakitPrompt(ctx), null, 2) }] }],
+    contents: [{ parts: [{ text: JSON.stringify(rakitPrompt({ ...ctx, jumlahMinta: jumlah }), null, 2) }] }],
     systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
   };
   const url = `${API_ENDPOINT_PREFIX}/models/${model}:generateContent?key=${apiKey}`;
   const teks = await panggilDenganBackoff(url, payload, onRetry);
+  let parsed: unknown;
   try {
-    return validasiHasil(ctx.tipe, JSON.parse(bersihkanMarkdown(teks)));
+    parsed = JSON.parse(bersihkanMarkdown(teks));
   } catch (err) {
-    if (err instanceof Error && (err.message.startsWith('Skema') || err.message.startsWith('Gagal membuat soal'))) throw err;
-    throw new Error(`Parsing output AI gagal: ${err instanceof Error ? err.message : String(err)}`);
+    throw new Error(`Parsing output AI gagal: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
   }
+  const d = parsed as Record<string, unknown>;
+  if (d && typeof d === 'object' && (d['error'] === true || d['error'] === 'true')) {
+    throw new Error(`Gagal membuat soal. Alasan AI: ${String(d['pesan'] ?? 'Materi tidak mendukung.')}`);
+  }
+  // Bentuk batch: { daftar_soal: [...] }. Bentuk lama (1 objek) tetap didukung.
+  const mentahList: unknown[] = Array.isArray((d as Record<string, unknown>)['daftar_soal'])
+    ? ((d as Record<string, unknown>)['daftar_soal'] as unknown[])
+    : [parsed];
+  const hasil: DataSoal[] = [];
+  let gagalSkema = 0;
+  for (const item of mentahList) {
+    try {
+      hasil.push(validasiHasil(ctx.tipe, item));
+    } catch (err) {
+      // Jangan gagalkan seluruh batch gara-gara 1 entri rusak.
+      if (err instanceof Error && err.message.startsWith('Gagal membuat soal')) throw err;
+      gagalSkema += 1;
+    }
+    if (hasil.length >= jumlah) break;
+  }
+  if (hasil.length === 0) {
+    throw new Error(
+      gagalSkema > 0
+        ? `Skema ${jumlah} soal batch tidak sesuai (semua ${gagalSkema} entri gagal validasi).`
+        : 'Respon kosong dari API Gemini.',
+    );
+  }
+  return hasil;
 }
 
 export function unduhDebugPrompt(ctx: KonteksGenerate): void {
